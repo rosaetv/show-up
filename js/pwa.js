@@ -32,9 +32,11 @@ export function setupPWA() {
   });
 
   // Cuando la versión nueva toma el control, recarga para usarla.
+  // En la primera visita no hay versión anterior: no hace falta recargar.
+  const hadController = Boolean(navigator.serviceWorker.controller);
   let reloading = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (reloading) return;
+    if (!hadController || reloading) return;
     reloading = true;
     location.reload();
   });

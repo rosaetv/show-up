@@ -23,6 +23,7 @@ const FILES = [
   "js/backup.js",
   "js/chart.js",
   "js/data/care.js",
+  "js/data/coverage.js",
   "js/data/catalog.js",
   "js/data/exercises-en.js",
   "js/data/exercises.js",

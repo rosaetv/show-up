@@ -2,6 +2,7 @@
 
 import { DAY_TEMPLATES, SPLITS, EXERCISES_PER_SESSION, PRESCRIPTIONS, MUSCLE_GROUPS } from "./data/catalog.js";
 import { CARE_ZONES, FOCUS_PATTERNS } from "./data/care.js";
+import { WEEKLY_COVERAGE, REGIONS } from "./data/coverage.js";
 import { isCompound } from "./store.js";
 import { t } from "./i18n.js";
 
@@ -53,6 +54,8 @@ export function generatePlan(options, exercises) {
     return { template: key, suffix, name, items };
   });
 
+  ensureWeeklyCoverage(days, exercises, options, usedInPlan);
+
   return {
     id: Date.now().toString(36),
     createdAt: new Date().toISOString(),
@@ -68,7 +71,81 @@ export function generatePlan(options, exercises) {
   };
 }
 
-function pickExercise(patterns, exercises, options, usedInDay, usedInPlan, position) {
+/**
+ * Cobertura semanal (ver js/data/coverage.js): si un músculo queda desatendido,
+ * cambia el ejercicio menos importante de un día de esa zona por uno que lo trabaje.
+ * Nunca toca los 2 ejercicios principales del día, y solo acepta el cambio si no
+ * deja sin cubrir otro músculo. Las zonas a priorizar solo ceden un ejercicio si
+ * ese movimiento se repite en la semana.
+ */
+function ensureWeeklyCoverage(days, exercises, options, usedInPlan) {
+  const byId = (id) => exercises.find((e) => e.id === id);
+  const focusPatterns = new Set(options.focus.flatMap((g) => FOCUS_PATTERNS[g] || []));
+  const changes = new Map(); // día → cuántos cambios lleva (para repartir)
+
+  const coverage = () => {
+    const count = {};
+    for (const day of days)
+      for (const item of day.items) {
+        const ex = byId(item.exerciseId);
+        if (!ex) continue;
+        for (const m of ex.primary) (count[m] ||= { primary: 0, secondary: 0 }).primary++;
+        for (const m of ex.secondary) (count[m] ||= { primary: 0, secondary: 0 }).secondary++;
+      }
+    return count;
+  };
+  const isCovered = (req, count) => {
+    const c = count[req.muscle] || { primary: 0, secondary: 0 };
+    return c.primary >= 1 || (!req.direct && c.secondary >= 2);
+  };
+  const weekCount = (pattern) => days.reduce((n, d) => n + d.items.filter((i) => byId(i.exerciseId)?.pattern === pattern).length, 0);
+
+  for (const req of WEEKLY_COVERAGE) {
+    for (let attempt = 0; attempt < 2 && !isCovered(req, coverage()); attempt++) {
+      const before = coverage();
+      const alreadyCovered = WEEKLY_COVERAGE.filter((r) => r !== req && isCovered(r, before));
+      // Ejercicios que trabajan el músculo (como principal; si no hay ninguno, como secundario).
+      const hasPrimary = exercises.some((e) => e.primary.includes(req.muscle));
+      const works = (e) => (hasPrimary ? e.primary.includes(req.muscle) : e.secondary.includes(req.muscle));
+      const regionPatterns = REGIONS[req.region];
+
+      const candidates = days
+        .map((day, index) => ({ day, index }))
+        .filter(({ day }) => !regionPatterns || DAY_TEMPLATES[day.template].slots.flat().some((p) => regionPatterns.includes(p)))
+        .sort((a, b) => (changes.get(a.index) || 0) - (changes.get(b.index) || 0));
+
+      const placed = [false, true].some((relaxed) =>
+        candidates.some(({ day, index }) => {
+          const usedInDay = new Set(day.items.map((i) => i.exerciseId));
+          const exercise =
+            pickExercise(req.patterns, exercises, options, usedInDay, usedInPlan, 2, works) ||
+            pickExercise([...new Set(exercises.filter(works).map((e) => e.pattern))], exercises, options, usedInDay, usedInPlan, 2, works);
+          if (!exercise) return false;
+
+          for (let slot = day.items.length - 1; slot >= 2; slot--) {
+            const current = byId(day.items[slot].exerciseId);
+            if (!current) continue;
+            if (focusPatterns.has(current.pattern) && !(relaxed && weekCount(current.pattern) > 1)) continue;
+            // Probar el cambio y aceptarlo solo si no descubre otro músculo.
+            const previous = day.items[slot];
+            day.items[slot] = makeItem(exercise, options.goal, slot, options);
+            const after = coverage();
+            if (alreadyCovered.every((r) => isCovered(r, after))) {
+              usedInPlan.add(exercise.id);
+              changes.set(index, (changes.get(index) || 0) + 1);
+              return true;
+            }
+            day.items[slot] = previous;
+          }
+          return false;
+        })
+      );
+      if (!placed) break; // No hay espacio (sesiones muy cortas): se deja como está.
+    }
+  }
+}
+
+function pickExercise(patterns, exercises, options, usedInDay, usedInPlan, position, filter = null) {
   const { excludedEquipment, favorites, goal, level, care } = options;
   const focusMuscles = focusMuscleSet(options.focus);
   let best = null;
@@ -79,6 +156,7 @@ function pickExercise(patterns, exercises, options, usedInDay, usedInPlan, posit
     if (patternRank === -1) continue;
     if (excludedEquipment.includes(exercise.equipment)) continue;
     if (usedInDay.has(exercise.id)) continue;
+    if (filter && !filter(exercise)) continue;
 
     let score = Math.random() * 2 - patternRank * 3;
     if (favorites.exercises.includes(exercise.id)) score += 10;

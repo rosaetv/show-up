@@ -385,7 +385,7 @@ export const EXERCISES = [
   // ---------- Hombro posterior ----------
   {
     id: "pajaros-mancuernas", name: "Pájaros con mancuernas", equipment: "mancuernas", pattern: "rear_delt",
-    primary: ["hombro_posterior"], secondary: ["espalda_media"],
+    primary: ["hombro_posterior"], secondary: ["espalda_media", "trapecio"],
     description: "Elevación de brazos hacia los lados con el torso inclinado adelante.",
     steps: ["Inclínate adelante con la espalda recta, mancuernas colgando.", "Abre los brazos hacia los lados.", "Baja lento."],
     tip: "Peso ligero y movimiento limpio.",
@@ -399,7 +399,7 @@ export const EXERCISES = [
   },
   {
     id: "pec-deck-inverso", name: "Pec deck inverso", equipment: "maquina", pattern: "rear_delt",
-    primary: ["hombro_posterior"], secondary: ["espalda_media"],
+    primary: ["hombro_posterior"], secondary: ["espalda_media", "trapecio"],
     description: "Abrir los brazos hacia atrás de frente al respaldo de la máquina.",
     steps: ["Siéntate mirando el respaldo, agarres a la altura de los hombros.", "Abre los brazos hacia atrás.", "Vuelve lento."],
     tip: "No juntes los omóplatos de más: piensa en los hombros.",
@@ -408,42 +408,42 @@ export const EXERCISES = [
   // ---------- Remo ----------
   {
     id: "remo-barra", name: "Remo con barra", equipment: "barra", pattern: "h_pull",
-    primary: ["dorsales", "espalda_media"], secondary: ["biceps", "hombro_posterior", "lumbares"],
+    primary: ["dorsales", "espalda_media"], secondary: ["biceps", "hombro_posterior", "lumbares", "trapecio"],
     description: "Tirar de la barra hacia el abdomen con el torso inclinado.",
     steps: ["Torso inclinado unos 45°, espalda recta, barra colgando.", "Tira de la barra hacia el ombligo.", "Baja controlando."],
     tip: "Lleva los codos hacia atrás, cerca del cuerpo.",
   },
   {
     id: "remo-mancuerna", name: "Remo con mancuerna a una mano", equipment: "mancuernas", pattern: "h_pull",
-    primary: ["dorsales", "espalda_media"], secondary: ["biceps", "hombro_posterior"],
+    primary: ["dorsales", "espalda_media"], secondary: ["biceps", "hombro_posterior", "trapecio"],
     description: "Remo a un brazo apoyando la otra mano y rodilla en un banco.",
     steps: ["Mano y rodilla en el banco, espalda plana.", "Tira de la mancuerna hacia la cadera.", "Baja hasta estirar el brazo."],
     tip: "Piensa en meter el codo en el bolsillo de atrás.",
   },
   {
     id: "remo-polea", name: "Remo sentado en polea", equipment: "polea", pattern: "h_pull",
-    primary: ["espalda_media", "dorsales"], secondary: ["biceps", "hombro_posterior"],
+    primary: ["espalda_media", "dorsales"], secondary: ["biceps", "hombro_posterior", "trapecio"],
     description: "Tirar del agarre hacia el abdomen frente a la polea.",
     steps: ["En el asiento, pies apoyados, espalda recta.", "Tira hacia el abdomen juntando los omóplatos.", "Vuelve estirando los brazos sin encorvarte."],
     tip: "El torso no se balancea: solo se mueven los brazos.",
   },
   {
     id: "remo-maquina", name: "Remo en máquina", equipment: "maquina", pattern: "h_pull",
-    primary: ["espalda_media", "dorsales"], secondary: ["biceps", "hombro_posterior"],
+    primary: ["espalda_media", "dorsales"], secondary: ["biceps", "hombro_posterior", "trapecio"],
     description: "Remo guiado con el pecho apoyado en la máquina.",
     steps: ["Pecho contra el respaldo, agarres al frente.", "Tira hacia atrás juntando los omóplatos.", "Vuelve lento."],
     tip: "El apoyo de pecho evita usar la espalda baja.",
   },
   {
     id: "remo-t", name: "Remo en T", equipment: "barra", pattern: "h_pull",
-    primary: ["espalda_media", "dorsales"], secondary: ["biceps", "lumbares"],
+    primary: ["espalda_media", "dorsales"], secondary: ["biceps", "lumbares", "trapecio"],
     description: "Remo con una barra anclada en un extremo, tirando del otro.",
     steps: ["De pie sobre la barra, agarre en V cerca de los discos.", "Torso inclinado, tira hacia el pecho.", "Baja controlando."],
     tip: "Mantén la espalda recta durante toda la serie.",
   },
   {
     id: "remo-invertido", name: "Remo invertido", equipment: "peso_corporal", pattern: "h_pull",
-    primary: ["espalda_media", "dorsales"], secondary: ["biceps", "hombro_posterior"],
+    primary: ["espalda_media", "dorsales"], secondary: ["biceps", "hombro_posterior", "trapecio"],
     description: "Con el cuerpo bajo una barra baja, tirar del pecho hacia la barra.",
     steps: ["Bajo una barra fija, cuerpo recto y talones en el suelo.", "Tira del pecho hacia la barra.", "Baja lento."],
     tip: "Cuanto más vertical estés, más fácil.",
@@ -577,7 +577,7 @@ export const EXERCISES = [
   },
   {
     id: "crunch-polea", name: "Crunch en polea", equipment: "polea", pattern: "core",
-    primary: ["abdomen"], secondary: [],
+    primary: ["abdomen"], secondary: ["oblicuos"],
     description: "De rodillas frente a la polea alta, enrollar el torso hacia abajo.",
     steps: ["De rodillas, cuerda a los lados de la cabeza.", "Enrolla el torso llevando los codos a los muslos.", "Vuelve controlando."],
     tip: "La cadera no se mueve: solo se curva la columna.",
@@ -605,7 +605,7 @@ export const EXERCISES = [
   },
   {
     id: "crunch", name: "Crunch abdominal", equipment: "peso_corporal", pattern: "core",
-    primary: ["abdomen"], secondary: [],
+    primary: ["abdomen"], secondary: ["oblicuos"],
     description: "Boca arriba, enrollar el torso despegando los hombros del suelo.",
     steps: ["Boca arriba, rodillas flexionadas.", "Despega los hombros enrollando el torso.", "Baja lento."],
     tip: "No tires del cuello con las manos.",
@@ -685,7 +685,7 @@ export const EXERCISES = [
   },
   {
     id: "remo-banda", name: "Remo con banda", equipment: "banda", pattern: "h_pull",
-    primary: ["espalda_media", "dorsales"], secondary: ["biceps", "hombro_posterior"],
+    primary: ["espalda_media", "dorsales"], secondary: ["biceps", "hombro_posterior", "trapecio"],
     description: "Tirar de la banda hacia el abdomen, anclada al frente o alrededor de los pies.",
     steps: ["En el suelo con la banda en los pies (o anclada al frente).", "Tira de las asas hacia el abdomen.", "Vuelve estirando los brazos."],
     tip: "Piensa en llevar los codos atrás, no en tirar con las manos.",
