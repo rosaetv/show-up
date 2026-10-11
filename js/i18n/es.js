@@ -300,6 +300,7 @@ export const ES = {
   "profile.addName": "Agregar nombre",
   "profile.changeName": "Cambiar nombre",
   "profile.namePlaceholder": "Tu nombre",
+  "profile.nameTitle": "¿Cómo te llamas?",
   "profile.weeksTitle": "Semanas cumplidas",
   "profile.streakLabel": ({ n }) => (n === 1 ? "semana seguida" : "semanas seguidas"),
   "profile.bestStreak": "mejor racha",
@@ -389,6 +390,9 @@ export const ES = {
   "backup.errorNewer": "Este respaldo es de una versión más nueva de la app.",
 
   // ---------- Borrar datos ----------
+  "delete.title": "¿Qué quieres borrar?",
+  "delete.confirmTitle": "¿Seguro?",
+  "delete.confirmButton": "Sí, borrar",
   "delete.all": "Seleccionar todo",
   "delete.note": "Lo que no marques se conserva. Te recomendamos exportar un respaldo antes.",
   "delete.button": "Borrar",

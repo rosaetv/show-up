@@ -300,6 +300,7 @@ export const EN = {
   "profile.addName": "Add name",
   "profile.changeName": "Change name",
   "profile.namePlaceholder": "Your name",
+  "profile.nameTitle": "What's your name?",
   "profile.weeksTitle": "Completed weeks",
   "profile.streakLabel": ({ n }) => (n === 1 ? "week in a row" : "weeks in a row"),
   "profile.bestStreak": "best streak",
@@ -389,6 +390,9 @@ export const EN = {
   "backup.errorNewer": "This backup is from a newer version of the app.",
 
   // ---------- Delete data ----------
+  "delete.title": "What do you want to delete?",
+  "delete.confirmTitle": "Are you sure?",
+  "delete.confirmButton": "Yes, delete",
   "delete.all": "Select all",
   "delete.note": "Anything you don't check is kept. We recommend exporting a backup first.",
   "delete.button": "Delete",

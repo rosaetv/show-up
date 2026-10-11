@@ -201,7 +201,7 @@ export async function renderProfile(view) {
 
 function nameSheet(profile, onSaved) {
   const close = openSheet({
-    title: "¿Cómo te llamas?",
+    title: t("profile.nameTitle"),
     body: `
       <form class="form record-form" novalidate>
         <input class="input" name="name" value="${esc(profile.name || "")}" placeholder="${t("profile.namePlaceholder")}" autocomplete="given-name" maxlength="30" />
@@ -225,7 +225,7 @@ function nameSheet(profile, onSaved) {
 function deleteSheet(onDone) {
   const selected = new Set();
   const close = openSheet({
-    title: "¿Qué quieres borrar?",
+    title: t("delete.title"),
     body: `
       <div class="choice-list delete-list">
         <button class="choice" data-all aria-pressed="false"><span>${t("delete.all")}</span></button>
@@ -263,9 +263,9 @@ function deleteSheet(onDone) {
           const categories = [...selected];
           close();
           const ok = await confirmSheet({
-            title: "¿Seguro?",
+            title: t("delete.confirmTitle"),
             text: t("delete.confirmText", { list: labels }),
-            confirmLabel: "Sí, borrar",
+            confirmLabel: t("delete.confirmButton"),
             danger: true,
           });
           if (!ok) return;
