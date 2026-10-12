@@ -6,6 +6,7 @@
 
 import { db } from "./db.js";
 import { startOfWeek } from "./store.js";
+import { isPeriodDate, todayISO } from "./period.js";
 
 const DAY = 86400000;
 
@@ -68,7 +69,7 @@ export const deloadSets = (sets) => Math.max(2, Math.floor(sets * 0.6));
  * ¿Conviene sugerir una descarga?
  * Devuelve null o { reason: "stalled", stalled: n } / { reason: "calendar", weeks: n }.
  */
-export function deloadAdvice(workouts, plan, state) {
+export function deloadAdvice(workouts, plan, state, periods = []) {
   if (!plan || isDeloadActive(state)) return null;
   if (state.snoozeUntil && new Date(state.snoozeUntil) > new Date()) return null;
 
@@ -76,10 +77,12 @@ export function deloadAdvice(workouts, plan, state) {
   const regular = workouts.filter((w) => !w.deload && new Date(w.finishedAt) > since);
 
   // 1. Estancamiento: sin mejora en 3 sesiones seguidas, en 3 ejercicios o más.
+  //    Las sesiones de días de período no cuentan (un día más ligero no es estancarse).
+  const comparable = regular.filter((w) => !isPeriodDate(periods, todayISO(new Date(w.finishedAt))));
   const planIds = new Set(plan.days.flatMap((d) => d.items.map((i) => i.exerciseId)));
   let stalled = 0;
   for (const id of planIds) {
-    const sessions = regular
+    const sessions = comparable
       .filter((w) => w.exercises.some((e) => e.exerciseId === id))
       .sort((a, b) => a.finishedAt.localeCompare(b.finishedAt))
       .slice(-3)

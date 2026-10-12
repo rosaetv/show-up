@@ -89,4 +89,16 @@ export const QUOTES_EN = {
     "Today can be gentle. Coming back is already the win.",
     "Muscle memory is real, and it's on your side.",
   ],
+
+  // Period days (if you log them)
+  period: [
+    "If your body asks for less today, giving it less is still training.",
+    "Today counts the same, even if it's lighter.",
+    "Moving a little is also taking care of yourself.",
+    "Listening to yourself is part of the plan.",
+    "One gentle day doesn't erase anything you've built.",
+    "Lowering the weight today is a smart call, not a step back.",
+    "Resting is a way of moving forward too.",
+    "Today's goal: feel better when you finish than when you started.",
+  ],
 };

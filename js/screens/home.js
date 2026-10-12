@@ -9,15 +9,23 @@ import { startWorkout } from "./session.js";
 import { GOALS } from "../data/catalog.js";
 import { esc, icons, pageHeader, toast, dayLabel, workoutDayLabel } from "../ui.js";
 import { t, locale } from "../i18n.js";
+import { getPeriods, activePeriod } from "../period.js";
+import { periodButton, periodStartSheet, periodEndSheet } from "./period.js";
 
 export async function renderHome(view) {
   const plan = await getPlan();
   const profile = await getProfile();
   const workouts = await getWorkouts();
   const summary = weeklySummary(workouts, plan?.daysPerWeek);
+  const periods = profile.trackPeriod ? await getPeriods() : [];
+  const period = activePeriod(periods);
 
   const greeting = `
-    ${pageHeader({ eyebrow: formatToday(), title: profile.name ? t("home.helloName", { name: esc(profile.name) }) : t("home.hello") })}
+    ${pageHeader({
+      eyebrow: formatToday(),
+      title: profile.name ? t("home.helloName", { name: esc(profile.name) }) : t("home.hello"),
+      action: profile.trackPeriod ? periodButton(period) : "",
+    })}
     ${profile.name ? "" : `<a class="streak-link name-link" href="#/perfil">${t("home.addName")}</a>`}`;
 
   const quote = profile.hideQuote
@@ -25,7 +33,7 @@ export async function renderHome(view) {
     : `
     <section class="card quote-card">
       <p class="quote-label">${t("home.today")}</p>
-      <p class="quote-text">${esc(quoteOfTheDay(workouts, summary, plan?.daysPerWeek))}</p>
+      <p class="quote-text">${esc(quoteOfTheDay(workouts, summary, plan?.daysPerWeek, Boolean(period)))}</p>
     </section>`;
 
   if (!plan) {
@@ -38,6 +46,7 @@ export async function renderHome(view) {
         <a class="btn btn-primary" href="#/plan/nuevo">${t("home.createPlan")}</a>
       </section>
     `;
+    view.onclick = (event) => periodAction(event, () => renderHome(view));
     return;
   }
 
@@ -82,7 +91,7 @@ export async function renderHome(view) {
     ${greeting}
     ${quote}
     ${nextCard}
-    ${notices(plan, deload, workouts, exercises)}
+    ${notices(plan, deload, workouts, periods)}
 
     <h2 class="section-title">${t("home.thisWeek")}</h2>
     <section class="card week-card">
@@ -119,6 +128,7 @@ export async function renderHome(view) {
   view.onclick = async (event) => {
     const action = event.target.closest("[data-action]")?.dataset.action;
     const refresh = () => renderHome(view);
+    if (periodAction(event, refresh)) return;
     if (action === "start") startWorkout(plan, nextIndex);
     else if (action === "backup-now") {
       try {
@@ -155,9 +165,18 @@ export async function renderHome(view) {
   };
 }
 
+// Botón del período junto al saludo. Devuelve true si el toque era suyo.
+function periodAction(event, refresh) {
+  const action = event.target.closest("[data-action]")?.dataset.action;
+  if (action === "period-start") periodStartSheet(refresh);
+  else if (action === "period-end") periodEndSheet(refresh);
+  else return false;
+  return true;
+}
+
 // ---------- Avisos: semana de descarga y plan con muchas semanas ----------
 
-function notices(plan, deload, workouts, exercises) {
+function notices(plan, deload, workouts, periods) {
   // Descarga en curso
   if (isDeloadActive(deload)) {
     const until = new Date(deload.until).toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" });
@@ -183,7 +202,7 @@ function notices(plan, deload, workouts, exercises) {
   }
 
   // Sugerencia de descarga
-  const advice = deloadAdvice(workouts, plan, deload, exercises);
+  const advice = deloadAdvice(workouts, plan, deload, periods);
   if (advice) {
     return `
       <section class="card notice-card">

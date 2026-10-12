@@ -95,4 +95,16 @@ export const QUOTES_ES = {
     "Hoy puede ser suave. Volver ya es la victoria.",
     "La memoria muscular existe y está de tu lado.",
   ],
+
+  // Días de período (si lo registras)
+  period: [
+    "Si hoy el cuerpo pide menos, darle menos también es entrenar.",
+    "Hoy cuenta igual, aunque sea más ligero.",
+    "Moverte un poco también es cuidarte.",
+    "Escucharte es parte del plan.",
+    "Un día suave no borra nada de lo que has construido.",
+    "Bajar el peso hoy es una decisión inteligente, no un paso atrás.",
+    "Descansar también es una forma de avanzar.",
+    "Hoy la meta es sentirte mejor al terminar que al empezar.",
+  ],
 };

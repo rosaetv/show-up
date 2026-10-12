@@ -1,6 +1,5 @@
 // Registro del service worker y aviso de "nueva versión disponible".
 
-import { VERSION } from "./version.js";
 import { t } from "./i18n.js";
 
 export function setupPWA() {
@@ -10,7 +9,7 @@ export function setupPWA() {
   const local = ["localhost", "127.0.0.1"].includes(location.hostname);
   if (local && !new URLSearchParams(location.search).has("sw")) return;
 
-  navigator.serviceWorker.register(`sw.js?v=${VERSION}`).then((registration) => {
+  navigator.serviceWorker.register("sw.js").then((registration) => {
     // Ya había una versión nueva esperando.
     if (registration.waiting && navigator.serviceWorker.controller) showUpdate(registration.waiting);
 
@@ -40,6 +39,36 @@ export function setupPWA() {
     reloading = true;
     location.reload();
   });
+}
+
+// Botón "Buscar actualizaciones" de Perfil.
+// Devuelve "update", "latest", "offline", "error" o "unsupported".
+export async function checkForUpdates() {
+  if (!("serviceWorker" in navigator)) return "unsupported";
+  const registration = await navigator.serviceWorker.getRegistration();
+  if (!registration) return "unsupported"; // en la computadora de desarrollo
+  if (registration.waiting) {
+    showUpdate(registration.waiting);
+    return "update";
+  }
+  try {
+    await registration.update();
+  } catch {
+    return navigator.onLine ? "error" : "offline";
+  }
+  const worker = registration.installing || registration.waiting;
+  if (!worker) return "latest";
+  // Espera a que termine de descargarse la versión nueva.
+  await new Promise((resolve) => {
+    const check = () => {
+      if (worker.state === "installed" || worker.state === "redundant") resolve();
+    };
+    worker.addEventListener("statechange", check);
+    check();
+  });
+  if (worker.state !== "installed") return "error";
+  showUpdate(worker);
+  return "update";
 }
 
 function showUpdate(worker) {

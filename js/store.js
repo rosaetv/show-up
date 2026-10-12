@@ -5,6 +5,7 @@ import { EXERCISES } from "./data/exercises.js";
 import { EXERCISES_EN } from "./data/exercises-en.js";
 import { lang } from "./i18n.js";
 import { COMPOUND_PATTERNS } from "./data/catalog.js";
+import { getPeriods, isPeriodDate, todayISO } from "./period.js";
 
 // ---------- Ejercicios ----------
 
@@ -125,13 +126,20 @@ export async function getExerciseHistory(exerciseId) {
 
 // Series de la última vez que se hizo un ejercicio.
 // Las sesiones de descarga no cuentan: la progresión sigue desde antes de la descarga.
+// Las sesiones de días de período no cuentan como referencia si hay una sesión normal:
+// así un día más ligero no baja la siguiente sugerencia.
 export async function getLastPerformance(exerciseId) {
+  const periods = (await getProfile()).trackPeriod ? await getPeriods() : [];
+  let periodFallback = null;
   for (const workout of await getWorkouts()) {
     if (workout.deload) continue;
     const entry = workout.exercises.find((e) => e.exerciseId === exerciseId);
-    if (entry?.sets.length) return { date: workout.finishedAt, sets: entry.sets };
+    if (!entry?.sets.length) continue;
+    const found = { date: workout.finishedAt, sets: entry.sets };
+    if (!isPeriodDate(periods, todayISO(new Date(workout.finishedAt)))) return found;
+    periodFallback ||= found;
   }
-  return null;
+  return periodFallback;
 }
 
 // Lunes a las 00:00 de la semana de la fecha dada.

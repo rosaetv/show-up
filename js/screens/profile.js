@@ -8,6 +8,9 @@ import { VERSION } from "../version.js";
 import { getUnits, setDefaultUnit, unitToggle } from "../units.js";
 import { t, locale } from "../i18n.js";
 import { applyTheme } from "../theme.js";
+import { checkForUpdates } from "../pwa.js";
+import { getPeriods, activePeriod } from "../period.js";
+import { periodEditSheet, shortPeriodDate } from "./period.js";
 import { lineChart, bindCharts } from "../chart.js";
 import { formatKg } from "./session.js";
 import { esc, icons, header, pageHeader, openSheet, confirmSheet, toast } from "../ui.js";
@@ -22,6 +25,7 @@ export async function renderProfile(view) {
   const lastBackup = await getLastBackup();
   const units = await getUnits();
   const usage = await storageUsage();
+  const periods = profile.trackPeriod ? await getPeriods() : [];
 
   const metricRows = Object.entries(BODY_METRICS)
     .map(([key, metric]) => {
@@ -91,6 +95,7 @@ export async function renderProfile(view) {
       <button class="btn-small" data-action="record">${icons.plus} ${t("profile.record")}</button>
     </div>
     <div class="list">${metricRows}</div>
+${profile.trackPeriod ? periodSection(periods) : ""}
 
     <h2 class="section-title">${t("profile.preferences")}</h2>
     <section class="card settings-card">
@@ -112,6 +117,11 @@ export async function renderProfile(view) {
         <span>${t("profile.quote")}</span>
         ${segmented("quote", t("profile.quote"), [["show", t("common.yes")], ["hide", t("common.no")]], profile.hideQuote ? "hide" : "show")}
       </div>
+      <div class="setting-row setting-divider">
+        <span>${t("period.track")}</span>
+        ${segmented("period-track", t("period.track"), [["on", t("common.yes")], ["off", t("common.no")]], profile.trackPeriod ? "on" : "off")}
+      </div>
+      <p class="muted small-note">${t("period.trackNote")}</p>
     </section>
 
     <h2 class="section-title">${t("profile.backup")}</h2>
@@ -129,6 +139,7 @@ export async function renderProfile(view) {
     <h2 class="section-title">${t("profile.deleteData")}</h2>
     <button class="btn btn-ghost-danger btn-outline-danger" data-action="delete">${t("profile.chooseDelete")}</button>
 
+    <button class="btn btn-secondary btn-spaced" data-action="check-updates">${t("pwa.check")}</button>
     <p class="app-version"><strong>Show Up</strong> · ${t("profile.version", { v: VERSION })}</p>
   `;
 
@@ -152,6 +163,15 @@ export async function renderProfile(view) {
       const y = window.scrollY;
       await renderProfile(view);
       window.scrollTo(0, y);
+    } else if (action === "period-track") {
+      await saveProfile({ ...profile, trackPeriod: event.target.closest("[data-value]").dataset.value === "on" });
+      const y = window.scrollY;
+      await renderProfile(view);
+      window.scrollTo(0, y);
+    } else if (action === "period-add") periodEditSheet(null, refresh);
+    else if (action === "period-edit") {
+      const index = Number(event.target.closest("[data-index]").dataset.index);
+      periodEditSheet(periods[index], refresh);
     } else if (action === "default-unit") {
       await setDefaultUnit(event.target.closest("[data-unit]").dataset.unit);
       const y = window.scrollY;
@@ -170,6 +190,15 @@ export async function renderProfile(view) {
       }
     } else if (action === "import") view.querySelector("[data-import-file]").click();
     else if (action === "delete") deleteSheet(refresh);
+    else if (action === "check-updates") {
+      const button = event.target.closest("[data-action]");
+      button.disabled = true;
+      button.textContent = t("pwa.checking");
+      const result = await checkForUpdates();
+      button.disabled = false;
+      button.textContent = t("pwa.check");
+      if (result !== "update") toast(t(`pwa.result.${result}`));
+    }
   };
 
   view.onchange = async (event) => {
@@ -450,6 +479,32 @@ function recordSheet(onSaved, onlyKey) {
 
 function valuesFor(records, key) {
   return records.filter((r) => r.values[key] !== undefined).map((r) => ({ date: r.date, value: r.values[key], recordId: r.id }));
+}
+
+// ---------- Período ----------
+
+function periodSection(periods) {
+  const current = activePeriod(periods)?.period;
+  const rows = periods
+    .slice(0, 12)
+    .map((p, i) => {
+      const days = p.end ? Math.round((new Date(`${p.end}T00:00`) - new Date(`${p.start}T00:00`)) / 86400000) + 1 : null;
+      return `
+      <button class="list-row" data-action="period-edit" data-index="${i}">
+        <span class="list-row-text">
+          <strong>${shortPeriodDate(p.start)}${p.end ? ` – ${shortPeriodDate(p.end)}` : ""}</strong>
+          <small>${days ? t("period.days", { n: days }) : p === current ? t("period.ongoing") : t("period.noEnd")}</small>
+        </span>
+        ${icons.chevron}
+      </button>`;
+    })
+    .join("");
+  return `
+    <div class="title-row section-row">
+      <h2 class="section-title">${t("period.title")}</h2>
+      <button class="btn-small" data-action="period-add">${icons.plus} ${t("period.add")}</button>
+    </div>
+    ${rows ? `<div class="list">${rows}</div>` : `<p class="muted small-note">${t("period.empty")}</p>`}`;
 }
 
 function today() {

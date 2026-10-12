@@ -25,6 +25,9 @@ export const icons = {
   refresh: svg('<path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/>'),
   play: svg('<rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/>'),
   thumbDown: svg('<path d="M7 14V4M7 14l3.5 6.5a1.8 1.8 0 0 0 3.3-1.2L13 15h5.2a2 2 0 0 0 2-2.3l-1.2-7A2 2 0 0 0 17 4H7M7 14H4.5A1.5 1.5 0 0 1 3 12.5v-7A1.5 1.5 0 0 1 4.5 4H7"/>'),
+  drop: svg('<path d="M12 3.5c3 4 6 7.4 6 10.8a6 6 0 0 1-12 0c0-3.4 3-6.8 6-10.8z"/>'),
+  dropFilled:
+    '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5c3 4 6 7.4 6 10.8a6 6 0 0 1-12 0c0-3.4 3-6.8 6-10.8z"/></svg>',
   thumbDownFilled:
     '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 14V4M7 14l3.5 6.5a1.8 1.8 0 0 0 3.3-1.2L13 15h5.2a2 2 0 0 0 2-2.3l-1.2-7A2 2 0 0 0 17 4H7M7 14H4.5A1.5 1.5 0 0 1 3 12.5v-7A1.5 1.5 0 0 1 4.5 4H7"/></svg>',
 };

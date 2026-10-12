@@ -1,11 +1,12 @@
 // Service worker: guarda la app en el teléfono para que funcione sin internet.
 //
-// - La versión viene de js/version.js (se registra como sw.js?v=X.Y.Z).
-//   Al subir la versión, el teléfono descarga la app nueva y ofrece "Actualizar".
+// - VERSION debe ser igual a la de js/version.js (dev/preparar-publicacion.py la copia).
+//   El teléfono solo detecta una versión nueva si este archivo cambia,
+//   por eso el número va escrito aquí y no en la dirección.
 // - Si agregas un archivo nuevo a la app, súmalo a FILES.
 //   (dev/revisar-sw.py avisa si falta alguno).
 
-const VERSION = new URL(self.location).searchParams.get("v") || "dev";
+const VERSION = "1.0.7";
 const CACHE = `show-up-${VERSION}`;
 const FONT_CACHE = "show-up-fonts";
 
@@ -36,6 +37,7 @@ const FILES = [
   "js/i18n/en.js",
   "js/i18n/es.js",
   "js/progression.js",
+  "js/period.js",
   "js/pwa.js",
   "js/quotes.js",
   "js/screens/day.js",
@@ -44,6 +46,7 @@ const FILES = [
   "js/screens/history.js",
   "js/screens/home.js",
   "js/screens/library.js",
+  "js/screens/period.js",
   "js/screens/profile.js",
   "js/screens/session.js",
   "js/screens/wizard.js",

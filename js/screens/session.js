@@ -2,8 +2,9 @@
 
 import {
   getActiveWorkout, saveActiveWorkout, clearActiveWorkout, saveWorkout,
-  getLastPerformance, getAllExercises, getNotes, getPlan, savePlan,
+  getLastPerformance, getAllExercises, getNotes, getPlan, savePlan, getProfile,
 } from "../store.js";
+import { getPeriods, activePeriod } from "../period.js";
 import { makeItem } from "../generator.js";
 import { suggestNext, targetReps, deloadSuggestion } from "../progression.js";
 import { getDeload, isDeloadActive, deloadSets } from "../deload.js";
@@ -34,6 +35,8 @@ export async function startWorkout(plan, dayIndex) {
   // En semana de descarga: menos series.
   const deload = isDeloadActive(await getDeload());
   const setsFor = (n) => (deload ? deloadSets(n) : n);
+  // Durante el período se muestra un recordatorio amable.
+  const period = Boolean((await getProfile()).trackPeriod && activePeriod(await getPeriods()));
   await saveActiveWorkout({
     id: Date.now().toString(36),
     dayIndex,
@@ -41,6 +44,7 @@ export async function startWorkout(plan, dayIndex) {
     dayTemplate: day.template,
     daySuffix: day.suffix,
     deload,
+    period,
     goal: plan.goal,
     goalPerWeek: plan.daysPerWeek,
     startedAt: new Date().toISOString(),
@@ -251,6 +255,7 @@ function template(active, byId, last, notes) {
       </header>
       <div class="session-progress"><span style="width:${total ? (done / total) * 100 : 0}%"></span></div>
     </div>
+    ${active.period ? `<p class="period-note">${t("period.sessionNote")}</p>` : ""}
     ${cards}
     <button class="btn btn-ghost-danger btn-spaced" data-action="discard">${t("session.discard")}</button>
     <div class="bottom-bar">
