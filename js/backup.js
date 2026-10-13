@@ -4,6 +4,7 @@ import { db, STORES } from "./db.js";
 import { resetExerciseCache } from "./store.js";
 import { t } from "./i18n.js";
 
+// Nombre interno de los respaldos: se mantiene para poder importar respaldos anteriores.
 const APP = "show-up";
 const VERSION = 1;
 
@@ -22,7 +23,7 @@ export async function exportData() {
 export async function downloadBackup() {
   const data = await exportData();
   const date = data.exportedAt.slice(0, 10);
-  const name = `show-up-respaldo-${date}.json`;
+  const name = `showup-respaldo-${date}.json`;
   const file = new File([JSON.stringify(data, null, 2)], name, { type: "application/json" });
 
   const isTouch = matchMedia("(pointer: coarse)").matches;

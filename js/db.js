@@ -1,6 +1,7 @@
 // Acceso a IndexedDB, la base de datos local del navegador.
 // Todas las tablas se crean desde ya para no tener que migrar datos más adelante.
 
+// Nombre interno: no cambiarlo al renombrar la app, o los datos guardados quedarían en la base anterior.
 const DB_NAME = "show-up";
 const DB_VERSION = 1;
 

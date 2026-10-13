@@ -140,7 +140,7 @@ ${profile.trackPeriod ? periodSection(periods) : ""}
     <button class="btn btn-ghost-danger btn-outline-danger" data-action="delete">${t("profile.chooseDelete")}</button>
 
     <button class="btn btn-secondary btn-spaced" data-action="check-updates">${t("pwa.check")}</button>
-    <p class="app-version"><strong>Show Up</strong> · ${t("profile.version", { v: VERSION })}</p>
+    <p class="app-version"><strong>ShowUp</strong> · ${t("profile.version", { v: VERSION })}</p>
   `;
 
   view.onclick = async (event) => {

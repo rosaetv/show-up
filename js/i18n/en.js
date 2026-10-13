@@ -374,7 +374,7 @@ export const EN = {
   "backup.ready": "Backup ready",
   "backup.exportError": "Couldn't export. Please try again.",
   "backup.exportErrorHome": "Couldn't export. Try from Profile.",
-  "backup.shareTitle": "Show Up backup",
+  "backup.shareTitle": "ShowUp backup",
   "backup.never": "You haven't made a backup yet.",
   "backup.last": ({ days }) => `Last backup: ${days === 0 ? "today" : days === 1 ? "yesterday" : `${days} days ago`}.`,
   "backup.reminderOld": "It's been over a month since your last backup",
@@ -385,8 +385,8 @@ export const EN = {
   "backup.importText": ({ date, n }) => `It's from ${date} and has ${plural(n, "workout", "workouts")}. It will replace ALL the app's current data.`,
   "backup.importConfirm": "Import and replace",
   "backup.imported": "Backup imported",
-  "backup.errorRead": "The file couldn't be read. Is it a Show Up backup (.json)?",
-  "backup.errorNotBackup": "This file isn't a Show Up backup.",
+  "backup.errorRead": "The file couldn't be read. Is it a ShowUp backup (.json)?",
+  "backup.errorNotBackup": "This file isn't a ShowUp backup.",
   "backup.errorNewer": "This backup is from a newer version of the app.",
 
   // ---------- Delete data ----------

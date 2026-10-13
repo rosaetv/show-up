@@ -374,7 +374,7 @@ export const ES = {
   "backup.ready": "Respaldo listo",
   "backup.exportError": "No se pudo exportar. Intenta de nuevo.",
   "backup.exportErrorHome": "No se pudo exportar. Intenta desde Perfil.",
-  "backup.shareTitle": "Respaldo de Show Up",
+  "backup.shareTitle": "Respaldo de ShowUp",
   "backup.never": "Aún no has hecho ningún respaldo.",
   "backup.last": ({ days }) => `Último respaldo: ${days === 0 ? "hoy" : days === 1 ? "ayer" : `hace ${days} días`}.`,
   "backup.reminderOld": "Hace más de un mes de tu último respaldo",
@@ -385,8 +385,8 @@ export const ES = {
   "backup.importText": ({ date, n }) => `Es del ${date} y tiene ${plural(n, "entrenamiento", "entrenamientos")}. Reemplazará TODOS los datos actuales de la app.`,
   "backup.importConfirm": "Importar y reemplazar",
   "backup.imported": "Respaldo importado",
-  "backup.errorRead": "El archivo no se pudo leer. ¿Es un respaldo de Show Up (.json)?",
-  "backup.errorNotBackup": "Este archivo no es un respaldo de Show Up.",
+  "backup.errorRead": "El archivo no se pudo leer. ¿Es un respaldo de ShowUp (.json)?",
+  "backup.errorNotBackup": "Este archivo no es un respaldo de ShowUp.",
   "backup.errorNewer": "Este respaldo es de una versión más nueva de la app.",
 
   // ---------- Borrar datos ----------

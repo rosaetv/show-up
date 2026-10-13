@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Show Up",
-  "short_name": "Show Up",
+  "name": "ShowUp",
+  "short_name": "ShowUp",
   "description": "Rutinas de gimnasio, registro y sobrecarga progresiva. Funciona sin conexión.",
   "start_url": "./",
   "scope": "./",
