@@ -13,11 +13,15 @@ const INCREMENTS = {
 
 /**
  * exercise: ejercicio de la biblioteca
- * last: { sets: [{ weight, reps }] } de la última sesión (o null), con el peso YA en `unit`
+ * last: { sets: [{ weight, reps }], effort } de la última sesión (o null), con el peso YA en `unit`
+ *   effort (opcional): "easy" | "ok" | "hard", cómo se sintió
+
  * range: { repMin, repMax, sets } objetivo actual
  * unit: "kg" o "lb"; el peso sugerido se devuelve en esa unidad
- * Devuelve { kind, weight, reps: [por serie], text } o null si no hay historial.
- *   kind: "up" (sube peso), "reps" (sube repeticiones), "down" (baja peso), "top" (tope sin peso)
+ * Devuelve { kind, weight, reps: [por serie], text, reason } o null si no hay historial.
+ *   kind: "up" (sube peso), "reps" (sube repeticiones), "down" (baja peso), "top" (tope sin peso),
+ *         "same" (repetir lo mismo porque se sintió pesado)
+ *   reason: "hard" | "easy" si la sugerencia cambió por el esfuerzo marcado
  */
 export function suggestNext(exercise, last, range, unit = "kg") {
   if (!last?.sets.length) return null;
@@ -36,6 +40,19 @@ export function suggestNext(exercise, last, range, unit = "kg") {
   const average = working.reduce((n, s) => n + s.reps, 0) / working.length;
   const bodyweightOnly = exercise.equipment === "peso_corporal" && weight === 0;
   const band = exercise.equipment === "banda";
+
+  // Se sintió pesado: no sube nada; repite lo mismo hasta que se sienta mejor.
+  // (Si te quedaste lejos de la meta, abajo se sugiere bajar el peso como siempre.)
+  const tooFar = average < repMin && weight > 0;
+  if (last.effort === "hard" && !tooFar) {
+    return {
+      kind: "same",
+      weight,
+      reps: Array.from({ length: plannedSets }, (_, i) => working[i]?.reps ?? working.at(-1).reps),
+      text: weight ? t("prog.sameHard", { weight: w(weight) }) : t("prog.sameHardNoWeight"),
+      reason: "hard",
+    };
+  }
 
   if (reachedTop) {
     if (band) {
@@ -74,7 +91,9 @@ export function suggestNext(exercise, last, range, unit = "kg") {
   }
 
   // Mismo peso, una repetición (o 5 segundos) más en cada serie que no llegó al tope.
-  const add = exercise.timed ? timedStep : 1;
+  // Si se sintió fácil, el doble.
+  const easy = last.effort === "easy";
+  const add = (exercise.timed ? timedStep : 1) * (easy ? 2 : 1);
   const reps = Array.from({ length: plannedSets }, (_, i) => {
     const previous = working[i]?.reps ?? working.at(-1).reps;
     return Math.min(Math.max(previous + add, repMin), repMax);
@@ -91,9 +110,14 @@ export function suggestNext(exercise, last, range, unit = "kg") {
     kind: "reps",
     weight,
     reps,
-    text: weight
-      ? t(exercise.timed ? "prog.keepTime" : "prog.keepReps", { weight: w(weight) })
-      : t(exercise.timed ? "prog.moreTime" : "prog.moreReps"),
+    text: easy
+      ? weight
+        ? t(exercise.timed ? "prog.keepTimeEasy" : "prog.keepRepsEasy", { weight: w(weight) })
+        : t(exercise.timed ? "prog.moreTimeEasy" : "prog.moreRepsEasy")
+      : weight
+        ? t(exercise.timed ? "prog.keepTime" : "prog.keepReps", { weight: w(weight) })
+        : t(exercise.timed ? "prog.moreTime" : "prog.moreReps"),
+    ...(easy && { reason: "easy" }),
   };
 }
 

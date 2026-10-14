@@ -44,6 +44,7 @@ export async function renderHistory(view) {
             <span class="list-row-text">
               <strong>${esc(workoutDayLabel(w))}${w.deload ? ` <span class="deload-chip">${t("deload.tag")}</span>` : ""}</strong>
               <small>${t("history.meta", { exercises: w.exercises.length, sets, duration: duration(w) })}</small>
+              ${w.records ? `<span class="pr-badge">${TROPHY}${t("record.count", { n: w.records })}</span>` : ""}
             </span>
             ${icons.chevron}
           </a>`;
@@ -76,6 +77,7 @@ export async function renderWorkout(view, id) {
         return `
       <article class="card">
         ${ex ? `<a class="ex-name" href="#/ejercicio/${ex.id}">${esc(ex.name)}</a>` : `<p class="ex-name">${esc(e.name)}</p>`}
+        ${e.record || e.effort ? `<p class="logged-tags">${e.record ? `<span class="pr-badge">${TROPHY}${t("record.badge")}</span>` : ""}${e.effort ? `<span class="tag">${t(`effort.${e.effort}`)}</span>` : ""}</p>` : ""}
         <div class="logged-sets">
           ${setsInUnit(e.sets, unitFor(units, e.exerciseId)).map((s, i) => `<span><small>${i + 1}</small>${formatSets([s], ex, unitFor(units, e.exerciseId))}</span>`).join("")}
         </div>
@@ -107,3 +109,6 @@ function duration(workout) {
 }
 
 const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
+const TROPHY =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/></svg>';

@@ -55,6 +55,8 @@
   --gradient-sunrise:             /* frase del día: amanecer */
     linear-gradient(135deg, #ffe7b8 0%, #ffcfae 50%, #fbbdcb 100%);
   --color-quote-label: #6b3a1f;   /* etiqueta "Hoy" sobre el amanecer */
+  --color-superset: #3f3191;      /* etiquetas de superserie (A1, A2) sobre lila */
+  --color-record: #6b4a00;        /* texto e ícono de récords sobre arena */
   --color-week-upcoming: rgba(27, 27, 31, 0.1); /* semanas próximas = fondo de la barra de hito */
   --color-track: rgba(27, 27, 31, 0.14);        /* pasos pendientes del cuestionario */
   --color-live-dot: #7ed39a;      /* punto de "entrenamiento en curso" */
@@ -171,6 +173,8 @@
   --gradient-streak: linear-gradient(135deg, #233626 0%, #352f22 100%);
   --gradient-sunrise: linear-gradient(135deg, #4a3a22 0%, #4f2f26 50%, #4a2733 100%);
   --color-quote-label: #f3c49b;
+  --color-superset: #c4b8ff;
+  --color-record: #f0cf86;
   --gradient-progress-start: #6aa3e6;
   --gradient-progress-end: #a99cf2;
 

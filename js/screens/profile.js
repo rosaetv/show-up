@@ -15,7 +15,8 @@ import { lineChart, bindCharts } from "../chart.js";
 import { formatKg } from "./session.js";
 import { esc, icons, header, pageHeader, openSheet, confirmSheet, toast } from "../ui.js";
 
-export async function renderProfile(view) {
+// section: "main" (resumen y menú), "cuerpo", "periodo", "preferencias" o "app".
+export async function renderProfile(view, section = "main") {
   const plan = await getPlan();
   const summary = weeklySummary(await getWorkouts(), plan?.daysPerWeek);
   const records = await getMeasurements();
@@ -45,7 +46,17 @@ export async function renderProfile(view) {
     })
     .join("");
 
-  view.innerHTML = `
+  const latestWeight = valuesFor(records, "peso").at(-1);
+  const current = activePeriod(periods);
+  const menu = [
+    ["cuerpo", t("profile.body"), latestWeight ? `${formatKg(latestWeight.value)} ${BODY_METRICS.peso.unit} · ${shortDate(latestWeight.date)}` : t("profile.bodyHint")],
+    profile.trackPeriod && ["periodo", t("period.title"), current ? t("period.dayLabelShort", { n: current.day }) : periods[0] ? t("period.lastStart", { date: shortPeriodDate(periods[0].start) }) : t("period.noneYet")],
+    ["preferencias", t("profile.preferences"), t("profile.preferencesHint")],
+    ["app", t("profile.about"), backupIsOld(lastBackup) ? `<span class="warn-text">${backupText(lastBackup)}</span>` : t("profile.aboutHint", { v: VERSION })],
+  ].filter(Boolean);
+
+  const pages = {
+    main: () => `
     ${pageHeader({
       eyebrow: t("tab.perfil"),
       title: profile.name ? esc(profile.name) : t("profile.yourProfile"),
@@ -89,15 +100,37 @@ export async function renderProfile(view) {
       </div>
 
     </section>
+    <div class="list profile-menu">
+      ${menu
+        .map(
+          ([key, label, hint]) => `
+        <a class="list-row" href="#/perfil/${key}">
+          <span class="list-row-text"><strong>${label}</strong><small>${hint}</small></span>
+          ${icons.chevron}
+        </a>`
+        )
+        .join("")}
+    </div>`,
 
-    <div class="title-row section-row">
-      <h2 class="section-title">${t("profile.body")}</h2>
+    cuerpo: () => `
+    ${header({ back: "#/perfil" })}
+    <div class="title-row subpage-title">
+      <h1 class="screen-title">${t("profile.body")}</h1>
       <button class="btn-small" data-action="record">${icons.plus} ${t("profile.record")}</button>
     </div>
-    <div class="list">${metricRows}</div>
-${profile.trackPeriod ? periodSection(periods) : ""}
+    <div class="list">${metricRows}</div>`,
 
-    <h2 class="section-title">${t("profile.preferences")}</h2>
+    periodo: () => `
+    ${header({ back: "#/perfil" })}
+    <div class="title-row subpage-title">
+      <h1 class="screen-title">${t("period.title")}</h1>
+      <button class="btn-small" data-action="period-add">${icons.plus} ${t("period.add")}</button>
+    </div>
+    ${periodList(periods)}`,
+
+    preferencias: () => `
+    ${header({ back: "#/perfil" })}
+    <h1 class="screen-title">${t("profile.preferences")}</h1>
     <section class="card settings-card">
       <div class="setting-row">
         <span>${t("profile.language")}</span>
@@ -115,16 +148,22 @@ ${profile.trackPeriod ? periodSection(periods) : ""}
       <p class="muted small-note">${t("profile.defaultUnitNote")}</p>
       <div class="setting-row setting-divider">
         <span>${t("profile.quote")}</span>
-        ${segmented("quote", t("profile.quote"), [["show", t("common.yes")], ["hide", t("common.no")]], profile.hideQuote ? "hide" : "show")}
+        ${segmented("quote", t("profile.quote"), [["hide", t("common.no")], ["show", t("common.yes")]], profile.hideQuote ? "hide" : "show")}
       </div>
       <div class="setting-row setting-divider">
         <span>${t("period.track")}</span>
-        ${segmented("period-track", t("period.track"), [["on", t("common.yes")], ["off", t("common.no")]], profile.trackPeriod ? "on" : "off")}
+        ${segmented("period-track", t("period.track"), [["off", t("common.no")], ["on", t("common.yes")]], profile.trackPeriod ? "on" : "off")}
       </div>
       <p class="muted small-note">${t("period.trackNote")}</p>
-    </section>
+    </section>`,
 
-    <h2 class="section-title">${t("profile.backup")}</h2>
+    app: () => `
+    ${header({ back: "#/perfil" })}
+    <h1 class="screen-title">${t("profile.about")}</h1>
+    <h2 class="section-title title-with-info">
+      ${t("profile.backup")}
+      <button class="info-btn" data-action="backup-info" aria-expanded="false" aria-controls="backup-note" aria-label="${t("profile.backupInfo")}">${icons.info}</button>
+    </h2>
     <section class="card backup-card">
       <p class="backup-status ${backupIsOld(lastBackup) ? "warn" : ""}">${backupText(lastBackup)}</p>
       <div class="stack">
@@ -132,20 +171,22 @@ ${profile.trackPeriod ? periodSection(periods) : ""}
         <button class="btn btn-secondary" data-action="import">${t("profile.import")}</button>
       </div>
       ${usage !== null ? `<p class="muted small-note">${usage < 0.1 ? t("profile.usageTiny") : t("profile.usage", { mb: formatKg(Math.round(usage * 10) / 10) })}</p>` : ""}
-      <p class="muted small-note">${t("profile.backupNote")}</p>
+      <p class="muted small-note" id="backup-note" hidden>${t("profile.backupNote")}</p>
       <input type="file" accept="application/json,.json" data-import-file hidden />
     </section>
 
     <h2 class="section-title">${t("profile.deleteData")}</h2>
     <button class="btn btn-ghost-danger btn-outline-danger" data-action="delete">${t("profile.chooseDelete")}</button>
 
-    <button class="btn btn-secondary btn-spaced" data-action="check-updates">${t("pwa.check")}</button>
-    <p class="app-version"><strong>ShowUp</strong> · ${t("profile.version", { v: VERSION })}</p>
-  `;
+    <h2 class="section-title">ShowUp · ${t("profile.version", { v: VERSION })}</h2>
+    <button class="btn btn-secondary" data-action="check-updates">${t("pwa.check")}</button>`,
+  };
+
+  view.innerHTML = (pages[section] || pages.main)();
 
   view.onclick = async (event) => {
     const action = event.target.closest("[data-action]")?.dataset.action;
-    const refresh = () => renderProfile(view);
+    const refresh = () => renderProfile(view, section);
     if (action === "record") recordSheet(refresh);
     else if (action === "name") nameSheet(profile, refresh);
     else if (action === "lang") {
@@ -156,17 +197,17 @@ ${profile.trackPeriod ? periodSection(periods) : ""}
       await saveProfile({ ...profile, theme });
       applyTheme(theme);
       const y = window.scrollY;
-      await renderProfile(view);
+      await renderProfile(view, section);
       window.scrollTo(0, y);
     } else if (action === "quote") {
       await saveProfile({ ...profile, hideQuote: event.target.closest("[data-value]").dataset.value === "hide" });
       const y = window.scrollY;
-      await renderProfile(view);
+      await renderProfile(view, section);
       window.scrollTo(0, y);
     } else if (action === "period-track") {
       await saveProfile({ ...profile, trackPeriod: event.target.closest("[data-value]").dataset.value === "on" });
       const y = window.scrollY;
-      await renderProfile(view);
+      await renderProfile(view, section);
       window.scrollTo(0, y);
     } else if (action === "period-add") periodEditSheet(null, refresh);
     else if (action === "period-edit") {
@@ -175,7 +216,7 @@ ${profile.trackPeriod ? periodSection(periods) : ""}
     } else if (action === "default-unit") {
       await setDefaultUnit(event.target.closest("[data-unit]").dataset.unit);
       const y = window.scrollY;
-      await renderProfile(view);
+      await renderProfile(view, section);
       window.scrollTo(0, y);
     }
     else if (action === "export") {
@@ -190,7 +231,12 @@ ${profile.trackPeriod ? periodSection(periods) : ""}
       }
     } else if (action === "import") view.querySelector("[data-import-file]").click();
     else if (action === "delete") deleteSheet(refresh);
-    else if (action === "check-updates") {
+    else if (action === "backup-info") {
+      const button = event.target.closest("[data-action]");
+      const note = view.querySelector("#backup-note");
+      note.hidden = !note.hidden;
+      button.setAttribute("aria-expanded", String(!note.hidden));
+    } else if (action === "check-updates") {
       const button = event.target.closest("[data-action]");
       button.disabled = true;
       button.textContent = t("pwa.checking");
@@ -364,7 +410,7 @@ const monthShort = (date) => date.toLocaleDateString(locale(), { month: "short" 
 export async function renderMetric(view, key) {
   const metric = BODY_METRICS[key];
   if (!metric) {
-    location.replace("#/perfil");
+    location.replace("#/perfil/cuerpo");
     return;
   }
   const records = await getMeasurements();
@@ -373,7 +419,7 @@ export async function renderMetric(view, key) {
   const format = (v) => `${formatKg(v)} ${metric.unit}`;
 
   view.innerHTML = `
-    ${header({ back: "#/perfil" })}
+    ${header({ back: "#/perfil/cuerpo" })}
     <h1 class="screen-title">${metric.label}</h1>
     ${latest
       ? `<p class="hero-number">${formatKg(latest.value)}<small>${metric.unit}</small></p>
@@ -483,10 +529,9 @@ function valuesFor(records, key) {
 
 // ---------- Período ----------
 
-function periodSection(periods) {
+function periodList(periods) {
   const current = activePeriod(periods)?.period;
   const rows = periods
-    .slice(0, 12)
     .map((p, i) => {
       const days = p.end ? Math.round((new Date(`${p.end}T00:00`) - new Date(`${p.start}T00:00`)) / 86400000) + 1 : null;
       return `
@@ -499,12 +544,7 @@ function periodSection(periods) {
       </button>`;
     })
     .join("");
-  return `
-    <div class="title-row section-row">
-      <h2 class="section-title">${t("period.title")}</h2>
-      <button class="btn-small" data-action="period-add">${icons.plus} ${t("period.add")}</button>
-    </div>
-    ${rows ? `<div class="list">${rows}</div>` : `<p class="muted small-note">${t("period.empty")}</p>`}`;
+  return rows ? `<div class="list">${rows}</div>` : `<p class="muted small-note">${t("period.empty")}</p>`;
 }
 
 function today() {

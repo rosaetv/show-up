@@ -145,7 +145,7 @@ function ensureWeeklyCoverage(days, exercises, options, usedInPlan) {
   }
 }
 
-function pickExercise(patterns, exercises, options, usedInDay, usedInPlan, position, filter = null) {
+export function pickExercise(patterns, exercises, options, usedInDay, usedInPlan, position, filter = null) {
   const { excludedEquipment, favorites, goal, level, care } = options;
   const focusMuscles = focusMuscleSet(options.focus);
   let best = null;

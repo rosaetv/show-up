@@ -31,6 +31,7 @@ const routes = [
   [/^ejercicio\/([^/]+)\/editar$/, renderExerciseForm, "ejercicios"],
   [/^ejercicio\/([^/]+)$/, renderExercise, "ejercicios"],
   [/^perfil$/, renderProfile, "perfil"],
+  [/^perfil\/(cuerpo|periodo|preferencias|app)$/, renderProfile, "perfil"],
   [/^perfil\/medida\/([^/]+)$/, renderMetric, "perfil"],
 ];
 

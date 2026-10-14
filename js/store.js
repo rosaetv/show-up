@@ -135,7 +135,7 @@ export async function getLastPerformance(exerciseId) {
     if (workout.deload) continue;
     const entry = workout.exercises.find((e) => e.exerciseId === exerciseId);
     if (!entry?.sets.length) continue;
-    const found = { date: workout.finishedAt, sets: entry.sets };
+    const found = { date: workout.finishedAt, sets: entry.sets, effort: entry.effort };
     if (!isPeriodDate(periods, todayISO(new Date(workout.finishedAt)))) return found;
     periodFallback ||= found;
   }

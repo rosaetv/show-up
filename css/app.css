@@ -1512,13 +1512,6 @@ select.input {
   margin-top: 0;
 }
 
-.app-version {
-  margin: var(--space-6) 0 0;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
-  text-align: center;
-}
-
 /* =========================================================
    Tema claro: colores de identidad
    ========================================================= */
@@ -1568,11 +1561,6 @@ select.input {
 .choice[aria-pressed="true"],
 .pill[aria-pressed="true"] {
   box-shadow: inset 0 0 0 1px var(--color-accent);
-}
-
-.app-version strong {
-  color: var(--color-text);
-  font-weight: var(--font-weight-bold);
 }
 
 /* ---------- Encabezado fijo del entrenamiento ---------- */
@@ -1962,4 +1950,272 @@ body.has-resume-bar .bottom-bar.above-tabs {
   border-radius: var(--radius-md);
   background: var(--tint-4);
   font-size: var(--font-size-sm);
+}
+
+/* ---------- Botón (i) junto a un título de sección ---------- */
+
+.title-with-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.info-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: -8px 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.info-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.info-btn[aria-expanded="true"] {
+  color: var(--color-accent);
+}
+
+/* ---------- Perfil: menú y subpáginas ---------- */
+
+.profile-menu {
+  margin-top: var(--space-6);
+}
+
+.warn-text {
+  color: var(--color-warning-text);
+}
+
+.subpage-title {
+  gap: var(--space-3);
+}
+
+.subpage-title .screen-title {
+  margin-bottom: var(--space-4);
+}
+
+/* ---------- Superseries ---------- */
+
+.ss-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+
+.ss-row strong {
+  display: block;
+}
+
+.ss-row small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.ss-group {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--tint-1);
+}
+
+.ss-group .card {
+  box-shadow: none;
+}
+
+.ss-group .card + .card,
+.ss-group .next-hint + .card {
+  margin-top: var(--space-2);
+}
+
+.ss-label {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-1) var(--space-2) var(--space-3);
+  color: var(--color-superset);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.ss-label span:first-child {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ex-index.pair {
+  color: var(--color-superset);
+  font-weight: var(--font-weight-bold);
+}
+
+.next-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.next-hint svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.check-list {
+  margin-bottom: var(--space-4);
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.check-row:first-child {
+  border-top: none;
+}
+
+.check-row input {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+.check-row strong {
+  display: block;
+  font-size: var(--font-size-sm);
+}
+
+.check-row small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* ---------- Récords y esfuerzo ---------- */
+
+.pr-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--tint-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pr-line svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--color-record);
+}
+
+.pr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--tint-5);
+  color: var(--color-record);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.list-row-text .pr-badge {
+  margin-top: var(--space-1);
+}
+
+.pr-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.logged-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+}
+
+.why {
+  margin: calc(var(--space-2) * -1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.next-time .why {
+  margin: var(--space-1) 0 var(--space-2);
+}
+
+.effort {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.effort p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.effort-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.effort-options button {
+  min-height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.effort-options button[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.records-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-4);
+}
+
+.records-card strong {
+  display: block;
+  font-size: var(--font-size-lg);
+}
+
+.records-card small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
 }

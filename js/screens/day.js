@@ -6,9 +6,10 @@ import { GOALS } from "../data/catalog.js";
 import { findAlternatives, makeItem, stressesCare } from "../generator.js";
 import { makeDraft } from "./wizard.js";
 import { startWorkout } from "./session.js";
-import { esc, icons, header, muscleTags, formatDose, openSheet, confirmSheet, toast, equipmentName, muscleName, dayLabel } from "../ui.js";
+import { esc, icons, header, muscleTags, formatDose, formatRest, openSheet, confirmSheet, toast, equipmentName, muscleName, dayLabel } from "../ui.js";
 import { getDeload, isDeloadActive, deloadSets } from "../deload.js";
 import { t } from "../i18n.js";
+import { proposeExtras, enableSupersets, disableSupersets, blocks, pairRest } from "../supersets.js";
 
 /** mode: "plan" (guardado) o "draft" (vista previa) */
 export async function renderDay(view, mode, dayIndex) {
@@ -42,30 +43,52 @@ export async function renderDay(view, mode, dayIndex) {
     )
     .join("");
 
-  const cards = day.items
-    .map((item, i) => {
-      const ex = byId(item.exerciseId);
-      if (!ex) {
-        return `<article class="card ex-card"><p class="muted">${t("common.deletedExercise")}</p>
-          <button class="btn-small" data-action="swap" data-index="${i}">${icons.swap} ${t("common.swap")}</button></article>`;
-      }
-      const note = notes[ex.id];
+  const card = (item, i, label, showRest) => {
+    const ex = byId(item.exerciseId);
+    if (!ex) {
+      return `<article class="card ex-card"><p class="muted">${t("common.deletedExercise")}</p>
+        <button class="btn-small" data-action="swap" data-index="${i}">${icons.swap} ${t("common.swap")}</button></article>`;
+    }
+    const note = notes[ex.id];
+    return `
+      <article class="card ex-card">
+        <div class="ex-head">
+          <a class="ex-name" href="#/ejercicio/${ex.id}"><span class="ex-index ${item.group ? "pair" : ""}">${label}</span>${esc(ex.name)}</a>
+          <button class="icon-btn ${note ? "has-note" : ""}" data-action="note" data-id="${ex.id}" aria-label="${t("note.label")}">${icons.pencil}</button>
+        </div>
+        <p class="ex-dose">${formatDose(shown(item), ex, targets[item.exerciseId], showRest)}</p>
+        <div class="tags">${muscleTags(ex)}</div>
+        ${note ? `<p class="ex-note" data-action="note" data-id="${ex.id}">${esc(note)}</p>` : ""}
+        <div class="ex-actions">
+          <button class="btn-small" data-action="swap" data-index="${i}">${icons.swap} ${t("common.swap")}</button>
+          <a class="btn-small" href="#/ejercicio/${ex.id}">${icons.info} ${t("exercise.howTo")}</a>
+        </div>
+      </article>`;
+  };
+
+  // Superseries: las parejas van juntas en un bloque (A1, A2); el resto con número.
+  let soloNumber = 0;
+  const cards = blocks(day.items)
+    .map(({ group, entries }) => {
+      if (!group) return entries.map(({ item, index: i }) => card(item, i, ++soloNumber, true)).join("");
       return `
-        <article class="card ex-card">
-          <div class="ex-head">
-            <a class="ex-name" href="#/ejercicio/${ex.id}"><span class="ex-index">${i + 1}</span>${esc(ex.name)}</a>
-            <button class="icon-btn ${note ? "has-note" : ""}" data-action="note" data-id="${ex.id}" aria-label="${t("note.label")}">${icons.pencil}</button>
-          </div>
-          <p class="ex-dose">${formatDose(shown(item), ex, targets[item.exerciseId])}</p>
-          <div class="tags">${muscleTags(ex)}</div>
-          ${note ? `<p class="ex-note" data-action="note" data-id="${ex.id}">${esc(note)}</p>` : ""}
-          <div class="ex-actions">
-            <button class="btn-small" data-action="swap" data-index="${i}">${icons.swap} ${t("common.swap")}</button>
-            <a class="btn-small" href="#/ejercicio/${ex.id}">${icons.info} ${t("exercise.howTo")}</a>
-          </div>
-        </article>`;
+        <div class="ss-group">
+          <p class="ss-label"><span>${t("superset.label", { letter: group })}</span><span>${t("dose.rest", { time: formatRest(pairRest(entries.map((e) => e.item))) })}</span></p>
+          ${entries.map(({ item, index: i }, n) => card(item, i, `${group}${n + 1}`, false)).join("")}
+        </div>`;
     })
     .join("");
+
+  const supersetToggle = isDraft
+    ? ""
+    : `
+    <div class="ss-row">
+      <span><strong>${t("superset.title")}</strong><small>${t("superset.hint")}</small></span>
+      <span class="unit-toggle" role="group" aria-label="${t("superset.title")}">
+        <button type="button" data-action="superset" data-value="off" aria-pressed="${!day.superset}">${t("common.no")}</button>
+        <button type="button" data-action="superset" data-value="on" aria-pressed="${Boolean(day.superset)}">${t("common.yes")}</button>
+      </span>
+    </div>`;
 
   view.innerHTML = `
     ${isDraft
@@ -74,6 +97,7 @@ export async function renderDay(view, mode, dayIndex) {
     <nav class="segments">${dayTabs}</nav>
     <h1 class="screen-title">${esc(dayLabel(day))}</h1>
     <p class="muted day-meta">${t("home.dayMeta", { n: day.items.length, minutes: plan.minutes })} · ${GOALS[plan.goal].label}${plan.focus?.length ? ` · ${t("day.focus", { list: plan.focus.map((g) => t(`group.${g}`)).join(", ") })}` : ""}${deload ? ` · ${t("deload.tag")}` : ""}</p>
+    ${supersetToggle}
     ${cards}
     ${isDraft
       ? `<div class="bottom-bar bottom-bar-split">
@@ -97,11 +121,39 @@ export async function renderDay(view, mode, dayIndex) {
       const i = Number(target.dataset.index);
       const current = byId(day.items[i].exerciseId);
       chooseAlternative(current, exercises, plan.excludedEquipment, plan.care, async (chosen) => {
-        day.items[i] = makeItem(chosen, plan.goal, i, plan);
+        const { group, extra, exerciseId: previousId } = day.items[i];
+        day.items[i] = { ...makeItem(chosen, plan.goal, i, plan), ...(group && { group }), ...(extra && { extra }) };
+        if (day.originalOrder) day.originalOrder = day.originalOrder.map((id) => (id === previousId ? chosen.id : id));
         await persist();
         toast(t("day.swapped"));
         renderDay(view, mode, index);
       });
+    } else if (action === "superset") {
+      const on = target.dataset.value === "on";
+      if (on === Boolean(day.superset)) return;
+      const refresh = () => renderDay(view, mode, index);
+      if (on) {
+        supersetSheet(plan, index, exercises, async (extras) => {
+          enableSupersets(plan, index, extras, exercises);
+          await persist();
+          toast(extras.length ? t("superset.addedN", { n: extras.length }) : t("superset.on"));
+          refresh();
+        });
+      } else {
+        const extras = day.items.filter((i) => i.extra).length;
+        if (extras) {
+          const ok = await confirmSheet({
+            title: t("superset.offTitle"),
+            text: t("superset.offText", { n: extras }),
+            confirmLabel: t("superset.offConfirm"),
+          });
+          if (!ok) return;
+        }
+        disableSupersets(plan, index);
+        await persist();
+        toast(t("superset.off"));
+        refresh();
+      }
     } else if (action === "note") {
       editNote(byId(target.dataset.id), notes[target.dataset.id] || "", () => renderDay(view, mode, index));
     } else if (action === "start") {
@@ -124,6 +176,49 @@ export async function renderDay(view, mode, dayIndex) {
       location.hash = "#/entrenar";
     }
   };
+}
+
+// ---------- Activar superseries: elegir ejercicios extra ----------
+
+async function supersetSheet(plan, dayIndex, exercises, onConfirm) {
+  const extras = proposeExtras(plan, dayIndex, exercises, await getFavorites());
+  if (!extras.length) return onConfirm([]);
+  const close = openSheet({
+    title: t("superset.extrasTitle", { n: extras.length }),
+    body: `
+      <p class="sheet-text">${t("superset.extrasText")}</p>
+      <div class="check-list">
+        ${extras
+          .map(
+            (e) => `
+          <label class="check-row">
+            <input type="checkbox" value="${e.id}" checked />
+            <span><strong>${esc(e.name)}</strong><small>${e.primary.map(muscleName).join(", ")}</small></span>
+          </label>`
+          )
+          .join("")}
+      </div>
+      <div class="stack">
+        <button class="btn btn-primary" data-add>${t("superset.addN", { n: extras.length })}</button>
+        <button class="btn btn-secondary" data-only>${t("superset.onlyPair")}</button>
+      </div>`,
+    onMount: (sheet) => {
+      const add = sheet.querySelector("[data-add]");
+      const chosen = () => [...sheet.querySelectorAll("input:checked")].map((input) => extras.find((e) => e.id === input.value));
+      sheet.addEventListener("change", () => {
+        const n = chosen().length;
+        add.textContent = n ? t("superset.addN", { n }) : t("superset.activate");
+      });
+      add.onclick = () => {
+        close();
+        onConfirm(chosen());
+      };
+      sheet.querySelector("[data-only]").onclick = () => {
+        close();
+        onConfirm([]);
+      };
+    },
+  });
 }
 
 // ---------- Elegir alternativa ----------

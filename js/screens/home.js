@@ -114,7 +114,7 @@ export async function renderHome(view) {
           <span class="day-number">${i + 1}</span>
           <span class="list-row-text">
             <strong>${esc(dayLabel(day))}</strong>
-            <small>${t("home.dayMeta", { n: day.items.length, minutes: plan.minutes })}</small>
+            <small>${t("home.dayMeta", { n: day.items.length, minutes: plan.minutes })}${day.superset ? ` · ${t("superset.title")}` : ""}</small>
           </span>
           ${icons.chevron}
         </a>`

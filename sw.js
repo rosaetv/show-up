@@ -6,7 +6,7 @@
 // - Si agregas un archivo nuevo a la app, súmalo a FILES.
 //   (dev/revisar-sw.py avisa si falta alguno).
 
-const VERSION = "1.0.8";
+const VERSION = "1.0.13";
 const CACHE = `show-up-${VERSION}`;
 const FONT_CACHE = "show-up-fonts";
 
@@ -40,6 +40,7 @@ const FILES = [
   "js/period.js",
   "js/pwa.js",
   "js/quotes.js",
+  "js/records.js",
   "js/screens/day.js",
   "js/screens/exercise-form.js",
   "js/screens/exercise.js",
@@ -52,6 +53,7 @@ const FILES = [
   "js/screens/wizard.js",
   "js/stats.js",
   "js/store.js",
+  "js/supersets.js",
   "js/theme.js",
   "js/ui.js",
   "js/units.js",

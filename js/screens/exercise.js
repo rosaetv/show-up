@@ -2,6 +2,7 @@
 
 import { getExercise, getAllExercises, getFavorites, toggleFavoriteExercise, toggleDislikedExercise, getNotes, getPlan, deleteCustomExercise, getExerciseHistory } from "../store.js";
 import { suggestNext } from "../progression.js";
+import { bestMarks } from "../records.js";
 import { lineChart, bindCharts } from "../chart.js";
 import { formatSets, suggestionIcon } from "./session.js";
 import { getUnits, setExerciseUnit, unitFor, setsInUnit, formatNumber, unitToggle } from "../units.js";
@@ -164,12 +165,28 @@ async function progressSection(exercise) {
   }));
   const format = usesWeight ? (v) => `${formatNumber(v)} ${weightUnit}` : (v) => `${Math.round(v)} ${unit}`;
 
+  // Récords (no aplican a ejercicios asistidos: ahí menos peso es más difícil).
+  const best = exercise.assisted ? null : bestMarks(history);
+  const mark = (set) => formatSets([set], exercise, weightUnit);
+  const records = best
+    ? `
+    <h2 class="section-title">${t("record.title")}</h2>
+    <section class="card records-card">
+      ${usesWeight
+        ? `<div><strong>${formatNumber(best.heaviest.weight)} ${weightUnit}</strong><small>${t("record.heaviest", { reps: best.heaviest.reps, date: shortDate(best.heaviest.date) })}</small></div>`
+        : ""}
+      <div><strong>${exercise.timed ? `${best.mostReps.reps} s` : t("record.reps", { n: best.mostReps.reps })}</strong><small>${usesWeight ? t("record.mostRepsWith", { set: mark(best.mostReps), date: shortDate(best.mostReps.date) }) : t("record.mostReps", { date: shortDate(best.mostReps.date) })}</small></div>
+    </section>`
+    : "";
+
   return `
     ${title}
+    ${records}
     ${suggestion ? `
     <section class="card next-time">
       <p class="eyebrow">${t("exercise.nextTime")}</p>
       <p class="suggestion suggestion-${suggestion.kind}">${suggestionIcon(suggestion.kind)}<span>${suggestion.text}</span></p>
+      ${suggestion.reason ? `<p class="why">${t(`prog.why.${suggestion.reason}`)}</p>` : ""}
       <p class="muted no-margin">${t("exercise.target")} ${formatSets(suggestion.reps.map((reps) => ({ weight: suggestion.weight, reps })), exercise, weightUnit)}</p>
     </section>` : ""}
     <section class="card chart-card">

@@ -2,15 +2,17 @@
 
 import {
   getActiveWorkout, saveActiveWorkout, clearActiveWorkout, saveWorkout,
-  getLastPerformance, getAllExercises, getNotes, getPlan, savePlan, getProfile,
+  getLastPerformance, getExerciseHistory, getAllExercises, getNotes, getPlan, savePlan, getProfile,
 } from "../store.js";
 import { getPeriods, activePeriod } from "../period.js";
+import { blocks, pairRest } from "../supersets.js";
+import { bestMarks, sessionRecord } from "../records.js";
 import { makeItem } from "../generator.js";
 import { suggestNext, targetReps, deloadSuggestion } from "../progression.js";
 import { getDeload, isDeloadActive, deloadSets } from "../deload.js";
 import { t } from "../i18n.js";
 import { chooseAlternative, editNote } from "./day.js";
-import { esc, icons, formatDose, openSheet, confirmSheet, toast, dayLabel, workoutDayLabel } from "../ui.js";
+import { esc, icons, formatDose, formatRest, openSheet, confirmSheet, toast, dayLabel, workoutDayLabel } from "../ui.js";
 import { getUnits, setExerciseUnit, unitFor, toKg, fromKg, setsInUnit, formatNumber, unitToggle } from "../units.js";
 
 // ---------- Empezar ----------
@@ -53,6 +55,7 @@ export async function startWorkout(plan, dayIndex) {
       repMin: item.repMin,
       repMax: item.repMax,
       rest: item.rest,
+      ...(item.group && { group: item.group }),
       plannedSets: setsFor(item.sets),
       unit: unitFor(units, item.exerciseId),
       sets: Array.from({ length: setsFor(item.sets) }, emptySet),
@@ -75,8 +78,12 @@ export async function renderSession(view) {
   const byId = (id) => exercises.find((e) => e.id === id);
   let notes = await getNotes();
   const last = {};
+  const bests = {}; // récords anteriores de cada ejercicio (en kg)
   const loadLast = async () => {
-    for (const e of active.exercises) last[e.exerciseId] = await getLastPerformance(e.exerciseId);
+    for (const e of active.exercises) {
+      last[e.exerciseId] = await getLastPerformance(e.exerciseId);
+      bests[e.exerciseId] = bestMarks(await getExerciseHistory(e.exerciseId));
+    }
   };
   await loadLast();
   document.body.classList.add("focus-mode");
@@ -87,7 +94,7 @@ export async function renderSession(view) {
 
   const draw = () => {
     const y = window.scrollY;
-    view.innerHTML = template(active, byId, last, notes);
+    view.innerHTML = template(active, byId, last, notes, bests);
     window.scrollTo(0, y);
     updateHeader();
   };
@@ -130,6 +137,11 @@ export async function renderSession(view) {
         set.done = true;
       }
       document.activeElement?.blur();
+      await save();
+      draw();
+    } else if (action === "effort") {
+      // Tocar la opción marcada la quita.
+      entry.effort = entry.effort === target.dataset.value ? undefined : target.dataset.value;
       await save();
       draw();
     } else if (action === "unit") {
@@ -184,11 +196,17 @@ export async function renderSession(view) {
   };
 }
 
-function template(active, byId, last, notes) {
+function template(active, byId, last, notes, bests) {
   const total = active.exercises.reduce((n, e) => n + e.sets.length, 0);
   const done = active.exercises.reduce((n, e) => n + e.sets.filter((s) => s.done).length, 0);
 
-  const cards = active.exercises
+  // Superseries: A1, A2... en las parejas; número normal en el resto.
+  const labels = [];
+  let soloNumber = 0;
+  for (const { group, entries } of blocks(active.exercises))
+    entries.forEach(({ index }, n) => (labels[index] = group ? `${group}${n + 1}` : ++soloNumber));
+
+  const cardHtml = active.exercises
     .map((entry, ei) => {
       const ex = byId(entry.exerciseId) || { id: entry.exerciseId, name: t("common.deletedExercise"), equipment: "", primary: [], secondary: [] };
       const unit = entry.unit || "kg";
@@ -224,12 +242,14 @@ function template(active, byId, last, notes) {
       return `
         <article class="card ex-card ${allDone ? "ex-complete" : ""}">
           <div class="ex-head">
-            <a class="ex-name" href="#/ejercicio/${ex.id}"><span class="ex-index">${ei + 1}</span>${esc(ex.name)}</a>
+            <a class="ex-name" href="#/ejercicio/${ex.id}"><span class="ex-index ${entry.group ? "pair" : ""}">${labels[ei]}</span>${esc(ex.name)}</a>
             <button class="icon-btn ${note ? "has-note" : ""}" data-action="note" data-ex="${ei}" aria-label="${t("note.label")}">${icons.pencil}</button>
           </div>
-          <p class="ex-dose">${formatDose({ ...entry, sets: entry.sets.length }, ex, targetReps(entry, suggestion))}</p>
+          <p class="ex-dose">${formatDose({ ...entry, sets: entry.sets.length }, ex, targetReps(entry, suggestion), !entry.group)}</p>
           <p class="last">${previous ? `<strong>${t("session.lastTime")}</strong> ${formatSets(previous.sets, ex, unit)}` : t("session.firstTime")}</p>
           ${suggestion ? `<p class="suggestion suggestion-${suggestion.kind}">${suggestionIcon(suggestion.kind)}<span>${esc(suggestion.text)}</span></p>` : ""}
+          ${suggestion?.reason ? `<p class="why">${t(`prog.why.${suggestion.reason}`)}</p>` : ""}
+          ${recordLine(entryRecord(entry, ex, bests[entry.exerciseId]), ex, unit)}
           ${note ? `<p class="ex-note" data-action="note" data-ex="${ei}">${esc(note)}</p>` : ""}
           <div class="sets">
             <div class="set-row set-head">
@@ -237,12 +257,25 @@ function template(active, byId, last, notes) {
             </div>
             ${rows}
           </div>
+          ${allDone ? effortPicker(entry, ei) : ""}
           <div class="ex-actions">
             <button class="btn-small" data-action="add-set" data-ex="${ei}">${icons.plus} ${t("session.set")}</button>
             ${entry.sets.length > 1 && !entry.sets.at(-1).done ? `<button class="btn-small" data-action="remove-set" data-ex="${ei}" aria-label="${t("session.removeSet")}">− ${t("session.set")}</button>` : ""}
             <button class="btn-small" data-action="swap" data-ex="${ei}">${icons.swap} ${t("common.swap")}</button>
           </div>
         </article>`;
+    });
+
+  const cards = blocks(active.exercises)
+    .map(({ group, entries }) => {
+      if (!group) return entries.map(({ index }) => cardHtml[index]).join("");
+      const step = nextStep(entries, byId);
+      const rounds = Math.max(...entries.map(({ item }) => item.sets.length));
+      return `
+        <div class="ss-group">
+          <p class="ss-label"><span>${t("superset.label", { letter: group })} · ${t("superset.round", { n: step ? step.round + 1 : rounds, total: rounds })}</span><span>${formatRest(pairRest(entries.map((e) => e.item)))}</span></p>
+          ${entries.map(({ index }) => `${step?.hint && step.index === index ? step.hint : ""}${cardHtml[index]}`).join("")}
+        </div>`;
     })
     .join("");
 
@@ -277,6 +310,7 @@ function swapExercise(active, ei, chosen, plan, onDone) {
       repMin: item.repMin,
       repMax: item.repMax,
       rest: item.rest,
+      ...(entry.group && { group: entry.group }),
       plannedSets: item.sets,
       unit: unitFor(await getUnits(), chosen.id),
       sets: entry.sets.map(emptySet),
@@ -285,7 +319,9 @@ function swapExercise(active, ei, chosen, plan, onDone) {
       const day = plan.days[active.dayIndex];
       const index = day?.items.findIndex((i) => i.exerciseId === originalId) ?? -1;
       if (index >= 0) {
-        day.items[index] = makeItem(chosen, plan.goal, index, plan);
+        const { group, extra } = day.items[index];
+        day.items[index] = { ...makeItem(chosen, plan.goal, index, plan), ...(group && { group }), ...(extra && { extra }) };
+        if (day.originalOrder) day.originalOrder = day.originalOrder.map((id) => (id === originalId ? chosen.id : id));
         await savePlan(plan);
       }
     }
@@ -335,6 +371,12 @@ async function finish(active, byId) {
   });
   if (!ok) return;
 
+  // Récords de hoy (contra todo lo anterior).
+  const records = new Set();
+  for (const e of active.exercises) {
+    if (entryRecord(e, byId(e.exerciseId), bestMarks(await getExerciseHistory(e.exerciseId)))) records.add(e);
+  }
+
   await saveWorkout({
     id: active.id,
     dayIndex: active.dayIndex,
@@ -356,8 +398,11 @@ async function finish(active, byId) {
         sets: e.sets
           .filter((s) => s.done)
           .map((s) => ({ weight: Math.round(toKg(toNumber(s.weight) || 0, e.unit || "kg") * 10000) / 10000, reps: toNumber(s.reps) })),
+        ...(e.effort && { effort: e.effort }),
+        ...(records.has(e) && { record: true }),
       }))
       .filter((e) => e.sets.length),
+    records: records.size,
   });
 
   // La rotación sigue con el día siguiente al que acabas de hacer.
@@ -367,20 +412,72 @@ async function finish(active, byId) {
     await savePlan(plan);
   }
   await clearActiveWorkout();
-  toast(t("session.saved"));
+  toast(records.size ? t("session.savedRecords", { n: records.size }) : t("session.saved"));
   location.hash = "#/entrenar";
+}
+
+// ---------- Récords y esfuerzo ----------
+
+const TROPHY =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3"/></svg>';
+
+// Récord de un ejercicio con las series hechas hoy (o null).
+function entryRecord(entry, exercise, best) {
+  const unit = entry.unit || "kg";
+  const sets = entry.sets
+    .filter((s) => s.done)
+    .map((s) => ({ weight: toKg(toNumber(s.weight) || 0, unit), reps: toNumber(s.reps) }));
+  return sessionRecord(exercise, sets, best);
+}
+
+function recordLine(record, exercise, unit) {
+  if (!record) return "";
+  const format = (set) => formatSets(setsInUnit([set], unit), exercise, unit);
+  return `<p class="pr-line" role="status">${TROPHY}<span>${t("record.new", { now: format(record.set), before: format(record.previous) })}</span></p>`;
+}
+
+function effortPicker(entry, ei) {
+  const options = ["easy", "ok", "hard"];
+  return `
+    <div class="effort">
+      <p>${t("effort.question")}</p>
+      <div class="effort-options" role="group" aria-label="${t("effort.question")}">
+        ${options.map((value) => `<button type="button" data-action="effort" data-ex="${ei}" data-value="${value}" aria-pressed="${entry.effort === value}">${t(`effort.${value}`)}</button>`).join("")}
+      </div>
+    </div>`;
 }
 
 // ---------- Utilidades ----------
 
 export function suggestionIcon(kind) {
-  const paths = { up: "M12 19V5M6 11l6-6 6 6", down: "M12 5v14M6 13l6 6 6-6", reps: "M5 12h14M12 5v14", top: "M5 13l4 4L19 7", deload: "M9 6v12M15 6v12" };
+  const paths = { up: "M12 19V5M6 11l6-6 6 6", down: "M12 5v14M6 13l6 6 6-6", reps: "M5 12h14M12 5v14", top: "M5 13l4 4L19 7", deload: "M9 6v12M15 6v12", same: "M5 9h14M5 15h14" };
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[kind]}"/></svg>`;
 }
 
 const toNumber = (value) => parseFloat(String(value).replace(",", "."));
 const isNumber = (value) => value !== "" && Number.isFinite(toNumber(value)) && toNumber(value) >= 0;
 const numericPlaceholder = (input) => (isNumber(input.placeholder) ? input.placeholder : "");
+
+// Siguiente serie de una superserie, alternando: A1 serie 1, A2 serie 1, A1 serie 2...
+// Devuelve { index, round, hint } o null si la pareja está completa.
+function nextStep(entries, byId) {
+  const rounds = Math.max(...entries.map(({ item }) => item.sets.length));
+  const order = [];
+  for (let round = 0; round < rounds; round++)
+    for (const { item, index } of entries) if (item.sets[round]) order.push({ item, index, round });
+  const at = order.findIndex((s) => !s.item.sets[s.round].done);
+  if (at === -1) return null;
+  const next = order[at];
+  const started = order.some((s) => s.item.sets[s.round].done);
+  if (!started) return { ...next, hint: "" };
+  const name = esc(byId(next.item.exerciseId)?.name || "");
+  const sameRound = at > 0 && order[at - 1].round === next.round;
+  const text = sameRound
+    ? t("superset.nowNoRest", { n: next.round + 1, name })
+    : t("superset.restThen", { time: formatRest(pairRest(entries.map((e) => e.item))), n: next.round + 1, name });
+  const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>';
+  return { ...next, hint: `<p class="next-hint" role="status">${arrow}<span>${text}</span></p>` };
+}
 
 function previousDoneSet(sets, index) {
   for (let i = index - 1; i >= 0; i--) if (sets[i].done) return sets[i];

@@ -97,9 +97,11 @@ export function formatRest(seconds) {
 }
 
 // "3 × 10 · Descanso 90 s". reps: la meta de repeticiones (un solo número).
-export function formatDose(item, exercise, reps) {
+// showRest: false dentro de una superserie (el descanso se muestra en la pareja).
+export function formatDose(item, exercise, reps, showRest = true) {
   const unit = exercise?.timed ? " s" : "";
-  return `${item.sets} × ${reps}${unit} · ${t("dose.rest", { time: formatRest(item.rest) })}`;
+  const dose = `${item.sets} × ${reps}${unit}`;
+  return showRest ? `${dose} · ${t("dose.rest", { time: formatRest(item.rest) })}` : dose;
 }
 
 // ---------- Panel inferior (bottom sheet) ----------
