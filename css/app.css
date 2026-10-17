@@ -2219,3 +2219,176 @@ body.has-resume-bar .bottom-bar.above-tabs {
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
 }
+
+/* ---------- Metas y logros ---------- */
+
+.goal-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.goal-card {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.goal-card + .goal-card {
+  margin-top: 0;
+}
+
+.goal-type {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.goal-card strong {
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-tight);
+}
+
+.goal-card small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.goal-bar {
+  display: block;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-track);
+  overflow: hidden;
+}
+
+.goal-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--gradient-progress-start), var(--gradient-progress-end));
+}
+
+.timeline-month {
+  margin: var(--space-4) 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.achv-row {
+  align-items: flex-start;
+}
+
+.achv-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--radius-full);
+}
+
+.achv-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.achv-victory {
+  background: var(--tint-4);
+}
+
+.achv-record {
+  background: var(--tint-5);
+  color: var(--color-record);
+}
+
+.achv-goal {
+  background: var(--tint-1);
+  color: var(--color-superset);
+}
+
+.achv-milestone {
+  background: var(--tint-3);
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.chip[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.celebration {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  text-align: center;
+}
+
+.celebration-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--tint-1);
+  color: var(--color-superset);
+}
+
+.celebration-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.celebration-goal {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.celebration .sheet-text {
+  margin: var(--space-2) 0 0;
+}
+
+/* ---------- Exportar rutina ---------- */
+
+.export-preview {
+  max-height: 260px;
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  overflow: auto;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  user-select: text;
+  -webkit-user-select: text;
+}

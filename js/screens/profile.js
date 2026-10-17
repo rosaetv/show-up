@@ -10,6 +10,9 @@ import { t, locale } from "../i18n.js";
 import { applyTheme } from "../theme.js";
 import { checkForUpdates } from "../pwa.js";
 import { getPeriods, activePeriod } from "../period.js";
+import { checkGoals } from "../goals.js";
+import { routineText, EXPORT_FILE } from "../export.js";
+import { celebrate, goalsSummary } from "./goals.js";
 import { periodEditSheet, shortPeriodDate } from "./period.js";
 import { lineChart, bindCharts } from "../chart.js";
 import { formatKg } from "./session.js";
@@ -49,6 +52,7 @@ export async function renderProfile(view, section = "main") {
   const latestWeight = valuesFor(records, "peso").at(-1);
   const current = activePeriod(periods);
   const menu = [
+    ["metas", t("goal.pageTitle"), await goalsSummary()],
     ["cuerpo", t("profile.body"), latestWeight ? `${formatKg(latestWeight.value)} ${BODY_METRICS.peso.unit} · ${shortDate(latestWeight.date)}` : t("profile.bodyHint")],
     profile.trackPeriod && ["periodo", t("period.title"), current ? t("period.dayLabelShort", { n: current.day }) : periods[0] ? t("period.lastStart", { date: shortPeriodDate(periods[0].start) }) : t("period.noneYet")],
     ["preferencias", t("profile.preferences"), t("profile.preferencesHint")],
@@ -175,6 +179,12 @@ export async function renderProfile(view, section = "main") {
       <input type="file" accept="application/json,.json" data-import-file hidden />
     </section>
 
+    <h2 class="section-title">${t("export.section")}</h2>
+    <section class="card">
+      <button class="btn btn-secondary" data-action="export-routine">${t("export.button")}</button>
+      <p class="muted small-note">${t("export.sectionText")}</p>
+    </section>
+
     <h2 class="section-title">${t("profile.deleteData")}</h2>
     <button class="btn btn-ghost-danger btn-outline-danger" data-action="delete">${t("profile.chooseDelete")}</button>
 
@@ -231,6 +241,7 @@ export async function renderProfile(view, section = "main") {
       }
     } else if (action === "import") view.querySelector("[data-import-file]").click();
     else if (action === "delete") deleteSheet(refresh);
+    else if (action === "export-routine") exportSheet();
     else if (action === "backup-info") {
       const button = event.target.closest("[data-action]");
       const note = view.querySelector("#backup-note");
@@ -270,6 +281,73 @@ export async function renderProfile(view, section = "main") {
     toast(t("backup.imported"));
     location.hash = "#/entrenar";
   };
+}
+
+// ---------- Exportar rutina (texto) ----------
+
+function exportSheet() {
+  const options = { allTime: false, body: false };
+  const canShareFiles = Boolean(navigator.canShare?.({ files: [new File([""], EXPORT_FILE, { type: "text/markdown" })] }));
+  openSheet({
+    title: t("export.button"),
+    body: `
+      <p class="sheet-text">${t("export.sheetText")}</p>
+      <div class="setting-row">
+        <span>${t("export.period")}</span>
+        ${segmented("period", t("export.period"), [["recent", t("export.last4")], ["all", t("export.allTime")]], "recent")}
+      </div>
+      <div class="setting-row setting-divider">
+        <span>${t("export.body")}</span>
+        ${segmented("body", t("export.body"), [["no", t("common.no")], ["yes", t("common.yes")]], "no")}
+      </div>
+      <pre class="export-preview" tabindex="0" aria-label="${t("export.preview")}"></pre>
+      <div class="stack">
+        <button class="btn btn-primary" data-file>${canShareFiles ? t("export.saveFile") : t("export.download")}</button>
+      </div>
+      <button class="link-btn center-block" data-copy>${t("export.copy")}</button>`,
+    onMount: async (sheet) => {
+      const preview = sheet.querySelector(".export-preview");
+      let text = "";
+      const build = async () => {
+        text = await routineText(options);
+        preview.textContent = text;
+      };
+      sheet.addEventListener("click", async (event) => {
+        const choice = event.target.closest("[data-action][data-value]");
+        if (choice) {
+          if (choice.dataset.action === "period") options.allTime = choice.dataset.value === "all";
+          if (choice.dataset.action === "body") options.body = choice.dataset.value === "yes";
+          choice.parentElement.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b === choice)));
+          await build();
+        }
+        if (event.target.closest("[data-copy]")) {
+          try {
+            await navigator.clipboard.writeText(text);
+            toast(t("export.copied"));
+          } catch {
+            // Si el navegador no deja copiar, se selecciona el texto para copiarlo a mano.
+            getSelection().selectAllChildren(preview);
+            toast(t("export.copyManual"));
+          }
+        }
+        if (event.target.closest("[data-file]")) {
+          const file = new File([text], EXPORT_FILE, { type: "text/markdown" });
+          try {
+            // En el iPhone abre el menú de compartir: "Guardar en Archivos" o mandarlo a otra app.
+            if (canShareFiles) await navigator.share({ files: [file] });
+            else {
+              const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(file), download: EXPORT_FILE });
+              link.click();
+              setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+            }
+          } catch (error) {
+            if (error.name !== "AbortError") toast(t("export.shareError"));
+          }
+        }
+      });
+      await build();
+    },
+  });
 }
 
 // ---------- Nombre ----------
@@ -516,6 +594,7 @@ function recordSheet(onSaved, onlyKey) {
         close();
         toast(t("metric.saved"));
         onSaved();
+        celebrate(await checkGoals());
       };
     },
   });

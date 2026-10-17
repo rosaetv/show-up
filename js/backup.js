@@ -91,7 +91,7 @@ export async function importData(data) {
 
 // Nombre y descripción de cada categoría: "delete.<clave>" y "delete.<clave>Detail".
 export const DELETE_CATEGORIES = {};
-for (const key of ["workouts", "measurements", "period", "plan", "customExercises", "favorites", "prefs", "profile"]) {
+for (const key of ["workouts", "measurements", "period", "goals", "plan", "customExercises", "favorites", "prefs", "profile"]) {
   Object.defineProperty(DELETE_CATEGORIES, key, {
     get: () => ({ label: t(`delete.${key}`), detail: t(`delete.${key}Detail`) }),
     enumerable: true,
@@ -107,6 +107,10 @@ export async function deleteData(categories) {
   }
   if (has("measurements")) await db.clear("measurements");
   if (has("period")) await db.delete("kv", "periods");
+  if (has("goals")) {
+    await db.delete("kv", "goals");
+    await db.delete("kv", "victories");
+  }
   if (has("plan")) {
     await db.delete("kv", "plan");
     await db.delete("kv", "draft");

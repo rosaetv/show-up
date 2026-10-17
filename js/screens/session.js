@@ -1,12 +1,14 @@
 // Entrenamiento en curso: registrar peso y repeticiones de cada serie.
 
 import {
-  getActiveWorkout, saveActiveWorkout, clearActiveWorkout, saveWorkout,
+  getActiveWorkout, saveActiveWorkout, clearActiveWorkout, saveWorkout, getWorkouts,
   getLastPerformance, getExerciseHistory, getAllExercises, getNotes, getPlan, savePlan, getProfile,
 } from "../store.js";
 import { getPeriods, activePeriod } from "../period.js";
 import { blocks, pairRest } from "../supersets.js";
 import { bestMarks, sessionRecord } from "../records.js";
+import { checkGoals } from "../goals.js";
+import { celebrate } from "./goals.js";
 import { makeItem } from "../generator.js";
 import { suggestNext, targetReps, deloadSuggestion } from "../progression.js";
 import { getDeload, isDeloadActive, deloadSets } from "../deload.js";
@@ -139,6 +141,8 @@ export async function renderSession(view) {
       document.activeElement?.blur();
       await save();
       draw();
+      // Metas de fuerza: se celebran en cuanto haces la serie.
+      if (set.done) celebrate(await checkGoals({ workouts: [...(await getWorkouts()), asWorkout(active)] }));
     } else if (action === "effort") {
       // Tocar la opción marcada la quita.
       entry.effort = entry.effort === target.dataset.value ? undefined : target.dataset.value;
@@ -414,6 +418,19 @@ async function finish(active, byId) {
   await clearActiveWorkout();
   toast(records.size ? t("session.savedRecords", { n: records.size }) : t("session.saved"));
   location.hash = "#/entrenar";
+  // Metas de constancia (la semana cuenta al guardar el entrenamiento).
+  celebrate(await checkGoals());
+}
+
+// El entrenamiento en curso como si estuviera guardado (pesos en kg), para revisar metas.
+function asWorkout(active) {
+  return {
+    finishedAt: new Date().toISOString(),
+    exercises: active.exercises.map((e) => ({
+      exerciseId: e.exerciseId,
+      sets: e.sets.filter((s) => s.done).map((s) => ({ weight: toKg(toNumber(s.weight) || 0, e.unit || "kg"), reps: toNumber(s.reps) })),
+    })),
+  };
 }
 
 // ---------- Récords y esfuerzo ----------

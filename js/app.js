@@ -9,6 +9,7 @@ import { renderProfile, renderMetric } from "./screens/profile.js";
 import { renderLibrary } from "./screens/library.js";
 import { renderExercise } from "./screens/exercise.js";
 import { renderExerciseForm } from "./screens/exercise-form.js";
+import { renderGoals } from "./screens/goals.js";
 import { getActiveWorkout, getProfile } from "./store.js";
 import { esc, icons, workoutDayLabel } from "./ui.js";
 import { setLanguage, t } from "./i18n.js";
@@ -32,6 +33,7 @@ const routes = [
   [/^ejercicio\/([^/]+)$/, renderExercise, "ejercicios"],
   [/^perfil$/, renderProfile, "perfil"],
   [/^perfil\/(cuerpo|periodo|preferencias|app)$/, renderProfile, "perfil"],
+  [/^perfil\/metas$/, renderGoals, "perfil"],
   [/^perfil\/medida\/([^/]+)$/, renderMetric, "perfil"],
 ];
 
