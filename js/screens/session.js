@@ -8,13 +8,14 @@ import { getPeriods, activePeriod } from "../period.js";
 import { blocks, pairRest } from "../supersets.js";
 import { bestMarks, sessionRecord } from "../records.js";
 import { checkGoals } from "../goals.js";
+import { CORE_DIY_REST } from "../data/core-diy.js";
 import { celebrate } from "./goals.js";
 import { makeItem } from "../generator.js";
 import { suggestNext, targetReps, deloadSuggestion } from "../progression.js";
 import { getDeload, isDeloadActive, deloadSets } from "../deload.js";
 import { t } from "../i18n.js";
 import { chooseAlternative, editNote } from "./day.js";
-import { esc, icons, formatDose, formatRest, openSheet, confirmSheet, toast, dayLabel, workoutDayLabel } from "../ui.js";
+import { esc, icons, closingHeader, formatDose, formatRest, openSheet, confirmSheet, toast, dayLabel, workoutDayLabel } from "../ui.js";
 import { getUnits, setExerciseUnit, unitFor, toKg, fromKg, setsInUnit, formatNumber, unitToggle } from "../units.js";
 
 // ---------- Empezar ----------
@@ -58,9 +59,47 @@ export async function startWorkout(plan, dayIndex) {
       repMax: item.repMax,
       rest: item.rest,
       ...(item.group && { group: item.group }),
+      ...(item.finisher && { finisher: true }),
       plannedSets: setsFor(item.sets),
       unit: unitFor(units, item.exerciseId),
       sets: Array.from({ length: setsFor(item.sets) }, emptySet),
+    })),
+  });
+  location.hash = "#/entrenando";
+}
+
+// Core DIY: un circuito de core en el mat. Es un extra (no cuenta para la meta ni mueve el plan).
+export async function startCoreCircuit({ ids, rounds, seconds }) {
+  const active = await getActiveWorkout();
+  if (active?.extra === "core") {
+    location.hash = "#/entrenando";
+    return;
+  }
+  if (active) {
+    const ok = await confirmSheet({
+      title: t("session.ongoingTitle"),
+      text: t("session.ongoingText", { name: workoutDayLabel(active) }),
+      confirmLabel: t("session.ongoingConfirm"),
+      danger: true,
+    });
+    if (!ok) return;
+  }
+  const units = await getUnits();
+  await saveActiveWorkout({
+    id: Date.now().toString(36),
+    extra: "core",
+    dayName: "Core DIY",
+    startedAt: new Date().toISOString(),
+    exercises: ids.map((exerciseId) => ({
+      exerciseId,
+      repMin: seconds,
+      repMax: seconds,
+      rest: CORE_DIY_REST,
+      group: "circuit",
+      seconds,
+      plannedSets: rounds,
+      unit: unitFor(units, exerciseId),
+      sets: Array.from({ length: rounds }, emptySet),
     })),
   });
   location.hash = "#/entrenando";
@@ -208,7 +247,7 @@ function template(active, byId, last, notes, bests) {
   const labels = [];
   let soloNumber = 0;
   for (const { group, entries } of blocks(active.exercises))
-    entries.forEach(({ index }, n) => (labels[index] = group ? `${group}${n + 1}` : ++soloNumber));
+    entries.forEach(({ index }, n) => (labels[index] = group === "circuit" ? n + 1 : group ? `${group}${n + 1}` : ++soloNumber));
 
   const cardHtml = active.exercises
     .map((entry, ei) => {
@@ -217,7 +256,7 @@ function template(active, byId, last, notes, bests) {
       const stored = last[entry.exerciseId];
       const previous = stored ? { ...stored, sets: setsInUnit(stored.sets, unit) } : null;
       const range = { repMin: entry.repMin, repMax: entry.repMax, sets: entry.plannedSets || entry.sets.length };
-      const suggestion = active.deload ? deloadSuggestion(ex, previous, range, unit) : suggestNext(ex, previous, range, unit);
+      const suggestion = entry.seconds ? null : active.deload ? deloadSuggestion(ex, previous, range, unit) : suggestNext(ex, previous, range, unit);
       const note = notes[ex.id];
       const bodyweight = ex.equipment === "peso_corporal";
       const allDone = entry.sets.every((s) => s.done);
@@ -228,7 +267,7 @@ function template(active, byId, last, notes, bests) {
           const lastSet = previous?.sets[si] || previous?.sets.at(-1);
           // Sugerencias en gris: lo que ya hiciste hoy, la progresión sugerida o la última vez.
           const weightHint = prevSet?.weight || (suggestion ? formatNumber(suggestion.weight) : lastSet ? formatNumber(lastSet.weight) : bodyweight ? "0" : "");
-          const repsHint = suggestion?.reps[si] ?? (prevSet?.reps || (lastSet ? lastSet.reps : targetReps(entry)));
+          const repsHint = entry.seconds || (suggestion?.reps[si] ?? (prevSet?.reps || (lastSet ? lastSet.reps : targetReps(entry))));
           return `
           <div class="set-row ${set.done ? "done" : ""}">
             <span class="set-num">${si + 1}</span>
@@ -249,15 +288,15 @@ function template(active, byId, last, notes, bests) {
             <a class="ex-name" href="#/ejercicio/${ex.id}"><span class="ex-index ${entry.group ? "pair" : ""}">${labels[ei]}</span>${esc(ex.name)}</a>
             <button class="icon-btn ${note ? "has-note" : ""}" data-action="note" data-ex="${ei}" aria-label="${t("note.label")}">${icons.pencil}</button>
           </div>
-          <p class="ex-dose">${formatDose({ ...entry, sets: entry.sets.length }, ex, targetReps(entry, suggestion), !entry.group)}</p>
-          <p class="last">${previous ? `<strong>${t("session.lastTime")}</strong> ${formatSets(previous.sets, ex, unit)}` : t("session.firstTime")}</p>
+          <p class="ex-dose">${entry.seconds ? t("core.dose", { rounds: entry.sets.length, seconds: entry.seconds }) : formatDose({ ...entry, sets: entry.sets.length }, ex, targetReps(entry, suggestion), !entry.group)}</p>
+          ${entry.seconds ? "" : `<p class="last">${previous ? `<strong>${t("session.lastTime")}</strong> ${formatSets(previous.sets, ex, unit)}` : t("session.firstTime")}</p>`}
           ${suggestion ? `<p class="suggestion suggestion-${suggestion.kind}">${suggestionIcon(suggestion.kind)}<span>${esc(suggestion.text)}</span></p>` : ""}
           ${suggestion?.reason ? `<p class="why">${t(`prog.why.${suggestion.reason}`)}</p>` : ""}
           ${recordLine(entryRecord(entry, ex, bests[entry.exerciseId]), ex, unit)}
           ${note ? `<p class="ex-note" data-action="note" data-ex="${ei}">${esc(note)}</p>` : ""}
           <div class="sets">
             <div class="set-row set-head">
-              <span>${t("session.set")}</span>${unitToggle(unit, "unit", `data-ex="${ei}"`)}<span>${ex.timed ? t("session.sec") : t("session.reps")}</span><span></span>
+              <span>${t("session.set")}</span>${unitToggle(unit, "unit", `data-ex="${ei}"`)}<span>${ex.timed || entry.seconds ? t("session.sec") : t("session.reps")}</span><span></span>
             </div>
             ${rows}
           </div>
@@ -270,14 +309,24 @@ function template(active, byId, last, notes, bests) {
         </article>`;
     });
 
+  // Título "Cierre" antes del primer ejercicio del cierre.
+  let closingShown = false;
+  const closingFor = (entries) => {
+    if (!entries[0].item.finisher || closingShown) return "";
+    closingShown = true;
+    return closingHeader();
+  };
   const cards = blocks(active.exercises)
     .map(({ group, entries }) => {
-      if (!group) return entries.map(({ index }) => cardHtml[index]).join("");
-      const step = nextStep(entries, byId);
+      const closing = closingFor(entries);
+      if (!group) return closing + entries.map(({ index }) => cardHtml[index]).join("");
+      const circuit = group === "circuit";
+      const step = nextStep(entries, byId, circuit);
       const rounds = Math.max(...entries.map(({ item }) => item.sets.length));
-      return `
+      const round = t("superset.round", { n: step ? step.round + 1 : rounds, total: rounds });
+      return `${closing}
         <div class="ss-group">
-          <p class="ss-label"><span>${t("superset.label", { letter: group })} · ${t("superset.round", { n: step ? step.round + 1 : rounds, total: rounds })}</span><span>${formatRest(pairRest(entries.map((e) => e.item)))}</span></p>
+          <p class="ss-label"><span>${circuit ? t("core.roundLabel", { round }) : `${t("superset.label", { letter: group })} · ${round}`}</span><span>${formatRest(pairRest(entries.map((e) => e.item)))}</span></p>
           ${entries.map(({ index }) => `${step?.hint && step.index === index ? step.hint : ""}${cardHtml[index]}`).join("")}
         </div>`;
     })
@@ -315,7 +364,8 @@ function swapExercise(active, ei, chosen, plan, onDone) {
       repMax: item.repMax,
       rest: item.rest,
       ...(entry.group && { group: entry.group }),
-      plannedSets: item.sets,
+      ...(entry.finisher && { finisher: true }),
+      plannedSets: entry.finisher ? entry.plannedSets : item.sets,
       unit: unitFor(await getUnits(), chosen.id),
       sets: entry.sets.map(emptySet),
     };
@@ -323,8 +373,8 @@ function swapExercise(active, ei, chosen, plan, onDone) {
       const day = plan.days[active.dayIndex];
       const index = day?.items.findIndex((i) => i.exerciseId === originalId) ?? -1;
       if (index >= 0) {
-        const { group, extra } = day.items[index];
-        day.items[index] = { ...makeItem(chosen, plan.goal, index, plan), ...(group && { group }), ...(extra && { extra }) };
+        const { group, extra, finisher, sets } = day.items[index];
+        day.items[index] = { ...makeItem(chosen, plan.goal, index, plan), ...(group && { group }), ...(extra && { extra }), ...(finisher && { finisher, sets }) };
         if (day.originalOrder) day.originalOrder = day.originalOrder.map((id) => (id === originalId ? chosen.id : id));
         await savePlan(plan);
       }
@@ -383,6 +433,7 @@ async function finish(active, byId) {
 
   await saveWorkout({
     id: active.id,
+    ...(active.extra && { extra: active.extra }),
     dayIndex: active.dayIndex,
     dayName: active.dayName,
     dayTemplate: active.dayTemplate,
@@ -403,6 +454,7 @@ async function finish(active, byId) {
           .filter((s) => s.done)
           .map((s) => ({ weight: Math.round(toKg(toNumber(s.weight) || 0, e.unit || "kg") * 10000) / 10000, reps: toNumber(s.reps) })),
         ...(e.effort && { effort: e.effort }),
+        ...(e.seconds && { circuit: true }),
         ...(records.has(e) && { record: true }),
       }))
       .filter((e) => e.sets.length),
@@ -411,7 +463,7 @@ async function finish(active, byId) {
 
   // La rotación sigue con el día siguiente al que acabas de hacer.
   const plan = await getPlan();
-  if (plan) {
+  if (plan && !active.extra) {
     plan.nextDay = (active.dayIndex + 1) % plan.days.length;
     await savePlan(plan);
   }
@@ -440,6 +492,7 @@ const TROPHY =
 
 // Récord de un ejercicio con las series hechas hoy (o null).
 function entryRecord(entry, exercise, best) {
+  if (entry.seconds) return null; // Core DIY se registra en segundos: no se compara con tus series
   const unit = entry.unit || "kg";
   const sets = entry.sets
     .filter((s) => s.done)
@@ -477,7 +530,8 @@ const numericPlaceholder = (input) => (isNumber(input.placeholder) ? input.place
 
 // Siguiente serie de una superserie, alternando: A1 serie 1, A2 serie 1, A1 serie 2...
 // Devuelve { index, round, hint } o null si la pareja está completa.
-function nextStep(entries, byId) {
+// circuit: en Core DIY los avisos hablan de vueltas.
+function nextStep(entries, byId, circuit = false) {
   const rounds = Math.max(...entries.map(({ item }) => item.sets.length));
   const order = [];
   for (let round = 0; round < rounds; round++)
@@ -489,9 +543,14 @@ function nextStep(entries, byId) {
   if (!started) return { ...next, hint: "" };
   const name = esc(byId(next.item.exerciseId)?.name || "");
   const sameRound = at > 0 && order[at - 1].round === next.round;
-  const text = sameRound
-    ? t("superset.nowNoRest", { n: next.round + 1, name })
-    : t("superset.restThen", { time: formatRest(pairRest(entries.map((e) => e.item))), n: next.round + 1, name });
+  const rest = formatRest(pairRest(entries.map((e) => e.item)));
+  const text = circuit
+    ? sameRound
+      ? t("core.next", { name })
+      : t("core.restThen", { time: rest, n: next.round + 1, name })
+    : sameRound
+      ? t("superset.nowNoRest", { n: next.round + 1, name })
+      : t("superset.restThen", { time: rest, n: next.round + 1, name });
   const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>';
   return { ...next, hint: `<p class="next-hint" role="status">${arrow}<span>${text}</span></p>` };
 }

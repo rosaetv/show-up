@@ -6,7 +6,7 @@ import { GOALS } from "../data/catalog.js";
 import { findAlternatives, makeItem, stressesCare } from "../generator.js";
 import { makeDraft } from "./wizard.js";
 import { startWorkout } from "./session.js";
-import { esc, icons, header, muscleTags, formatDose, formatRest, openSheet, confirmSheet, toast, equipmentName, muscleName, dayLabel } from "../ui.js";
+import { esc, icons, header, closingHeader, muscleTags, formatDose, formatRest, openSheet, confirmSheet, toast, equipmentName, muscleName, dayLabel } from "../ui.js";
 import { getDeload, isDeloadActive, deloadSets } from "../deload.js";
 import { t } from "../i18n.js";
 import { proposeExtras, enableSupersets, disableSupersets, blocks, pairRest } from "../supersets.js";
@@ -68,10 +68,18 @@ export async function renderDay(view, mode, dayIndex) {
 
   // Superseries: las parejas van juntas en un bloque (A1, A2); el resto con número.
   let soloNumber = 0;
+  // Título "Cierre" antes del primer ejercicio del cierre.
+  let closingShown = false;
+  const closingFor = (entries) => {
+    if (!entries[0].item.finisher || closingShown) return "";
+    closingShown = true;
+    return closingHeader();
+  };
   const cards = blocks(day.items)
     .map(({ group, entries }) => {
-      if (!group) return entries.map(({ item, index: i }) => card(item, i, ++soloNumber, true)).join("");
-      return `
+      const closing = closingFor(entries);
+      if (!group) return closing + entries.map(({ item, index: i }) => card(item, i, ++soloNumber, true)).join("");
+      return `${closing}
         <div class="ss-group">
           <p class="ss-label"><span>${t("superset.label", { letter: group })}</span><span>${t("dose.rest", { time: formatRest(pairRest(entries.map((e) => e.item))) })}</span></p>
           ${entries.map(({ item, index: i }, n) => card(item, i, `${group}${n + 1}`, false)).join("")}
@@ -121,8 +129,8 @@ export async function renderDay(view, mode, dayIndex) {
       const i = Number(target.dataset.index);
       const current = byId(day.items[i].exerciseId);
       chooseAlternative(current, exercises, plan.excludedEquipment, plan.care, async (chosen) => {
-        const { group, extra, exerciseId: previousId } = day.items[i];
-        day.items[i] = { ...makeItem(chosen, plan.goal, i, plan), ...(group && { group }), ...(extra && { extra }) };
+        const { group, extra, finisher, sets, exerciseId: previousId } = day.items[i];
+        day.items[i] = { ...makeItem(chosen, plan.goal, i, plan), ...(group && { group }), ...(extra && { extra }), ...(finisher && { finisher, sets }) };
         if (day.originalOrder) day.originalOrder = day.originalOrder.map((id) => (id === previousId ? chosen.id : id));
         await persist();
         toast(t("day.swapped"));

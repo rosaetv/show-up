@@ -14,7 +14,7 @@ export const MUSCLES = labeled("muscle", [
   "pecho", "dorsales", "espalda_media", "trapecio", "lumbares",
   "hombro_frontal", "hombro_lateral", "hombro_posterior",
   "biceps", "triceps", "antebrazo", "abdomen", "oblicuos",
-  "gluteos", "gluteo_medio", "cuadriceps", "isquios", "aductores", "pantorrillas",
+  "gluteos", "gluteo_medio", "cuadriceps", "isquios", "aductores", "pantorrillas", "tibial",
 ]);
 
 // Grupos para los filtros de la biblioteca (el nombre es "group.<clave>").
@@ -34,7 +34,7 @@ export const EQUIPMENT = labeled("equipment", [
 
 export const PATTERNS = labeled("pattern", [
   "squat", "hinge", "lunge", "knee_ext", "knee_flex", "hip_thrust", "abduction", "adduction", "calf",
-  "h_push", "fly", "v_push", "lateral", "rear_delt", "h_pull", "v_pull", "biceps", "triceps", "core", "other",
+  "h_push", "fly", "v_push", "lateral", "rear_delt", "h_pull", "v_pull", "biceps", "triceps", "core", "ankle", "other",
 ]);
 
 // Movimientos que usan varias articulaciones a la vez: van primero en la rutina.

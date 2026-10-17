@@ -16,6 +16,10 @@ export const CARE_ZONES = {
     "press-militar", "press-hombro-mancuernas", "press-hombro-maquina", "press-arnold", "press-hombro-banda",
     "fondos-paralelas", "fondos-banco", "press-inclinado-barra", "dominadas",
   ],
+  // Tobillos: además de evitar estos, el plan suma un ejercicio corto para fortalecerlos cada día.
+  tobillos: [
+    "zancadas-mancuernas", "sentadilla-bulgara", "step-up", "zancada-smith",
+  ],
   munecas: [
     "flexiones", "press-frances", "curl-barra", "press-cerrado", "fondos-banco", "press-banca", "press-militar",
   ],
@@ -30,4 +34,10 @@ export const FOCUS_PATTERNS = {
   shoulders: ["lateral", "v_push", "rear_delt"],
   arms: ["biceps", "triceps"],
   core: ["core"],
+};
+
+// Si el único tipo de movimiento de un hueco carga una zona a cuidar,
+// se busca un ejercicio de estos otros tipos que no la cargue.
+export const SAFE_SWAPS = {
+  lunge: ["hip_thrust", "squat", "knee_ext"],
 };

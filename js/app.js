@@ -10,6 +10,7 @@ import { renderLibrary } from "./screens/library.js";
 import { renderExercise } from "./screens/exercise.js";
 import { renderExerciseForm } from "./screens/exercise-form.js";
 import { renderGoals } from "./screens/goals.js";
+import { renderCore } from "./screens/core.js";
 import { getActiveWorkout, getProfile } from "./store.js";
 import { esc, icons, workoutDayLabel } from "./ui.js";
 import { setLanguage, t } from "./i18n.js";
@@ -25,6 +26,7 @@ const routes = [
   [/^plan\/preview\/(\d+)$/, (v, i) => renderDay(v, "draft", i), "entrenar"],
   [/^dia\/(\d+)$/, (v, i) => renderDay(v, "plan", i), "entrenar"],
   [/^entrenando$/, renderSession, "entrenar"],
+  [/^core$/, renderCore, "entrenar"],
   [/^historial$/, renderHistory, "historial"],
   [/^historial\/([^/]+)$/, renderWorkout, "historial"],
   [/^ejercicios$/, renderLibrary, "ejercicios"],

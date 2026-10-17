@@ -32,7 +32,7 @@ export const newId = () => Date.now().toString(36) + Math.random().toString(36).
 export function goalProgress(goal, data) {
   if (goal.achievedAt) return { ratio: 1, current: null };
   if (goal.type === "strength") {
-    const sets = data.workouts.flatMap((w) => w.exercises.filter((e) => e.exerciseId === goal.exerciseId).flatMap((e) => e.sets));
+    const sets = data.workouts.filter((w) => !w.extra).flatMap((w) => w.exercises.filter((e) => e.exerciseId === goal.exerciseId).flatMap((e) => e.sets));
     // Sin peso: cuenta tu máximo de repeticiones.
     if (goal.weight <= SAME) {
       const best = sets.reduce((b, s) => (!b || s.reps > b.reps ? s : b), null);

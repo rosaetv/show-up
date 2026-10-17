@@ -42,7 +42,7 @@ export async function renderHistory(view) {
               <strong>${date.getDate()}</strong>
             </span>
             <span class="list-row-text">
-              <strong>${esc(workoutDayLabel(w))}${w.deload ? ` <span class="deload-chip">${t("deload.tag")}</span>` : ""}</strong>
+              <strong>${esc(workoutDayLabel(w))}${w.deload ? ` <span class="deload-chip">${t("deload.tag")}</span>` : ""}${w.extra ? ` <span class="deload-chip">${t("core.extraTag")}</span>` : ""}</strong>
               <small>${t("history.meta", { exercises: w.exercises.length, sets, duration: duration(w) })}</small>
               ${w.records ? `<span class="pr-badge">${TROPHY}${t("record.count", { n: w.records })}</span>` : ""}
             </span>
@@ -79,7 +79,7 @@ export async function renderWorkout(view, id) {
         ${ex ? `<a class="ex-name" href="#/ejercicio/${ex.id}">${esc(ex.name)}</a>` : `<p class="ex-name">${esc(e.name)}</p>`}
         ${e.record || e.effort ? `<p class="logged-tags">${e.record ? `<span class="pr-badge">${TROPHY}${t("record.badge")}</span>` : ""}${e.effort ? `<span class="tag">${t(`effort.${e.effort}`)}</span>` : ""}</p>` : ""}
         <div class="logged-sets">
-          ${setsInUnit(e.sets, unitFor(units, e.exerciseId)).map((s, i) => `<span><small>${i + 1}</small>${formatSets([s], ex, unitFor(units, e.exerciseId))}</span>`).join("")}
+          ${setsInUnit(e.sets, unitFor(units, e.exerciseId)).map((s, i) => `<span><small>${i + 1}</small>${formatSets([s], e.circuit ? { ...ex, timed: true } : ex, unitFor(units, e.exerciseId))}</span>`).join("")}
         </div>
       </article>`;
       })

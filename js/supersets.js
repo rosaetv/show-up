@@ -51,7 +51,8 @@ export function applyPairs(day, byId) {
   for (const item of day.items) delete item.group;
   const solo = [];
   const pool = [];
-  day.items.forEach((item, i) => (staysSolo(byId(item.exerciseId), i) ? solo : pool).push(item));
+  const finishers = []; // el cierre (core y tobillo) se empareja entre sí y queda al final
+  day.items.forEach((item, i) => (item.finisher ? finishers : staysSolo(byId(item.exerciseId), i) ? solo : pool).push(item));
 
   // Prueba todas las formas de emparejar (son pocos ejercicios) y se queda con la
   // que forma más parejas y, entre esas, la de mejores combinaciones.
@@ -71,12 +72,15 @@ export function applyPairs(day, byId) {
     return result;
   };
   const { pairs, leftover } = best(pool);
+  const closing = best(finishers);
 
-  // Cada bloque (solo o pareja) va donde estaba su primer ejercicio.
+  // Cada bloque (solo o pareja) va donde estaba su primer ejercicio; el cierre, al final.
   const position = (item) => day.items.indexOf(item);
-  const ordered = [...solo.map((i) => [i]), ...leftover.map((i) => [i]), ...pairs].sort(
-    (a, b) => Math.min(...a.map(position)) - Math.min(...b.map(position))
-  );
+  const byPosition = (a, b) => Math.min(...a.map(position)) - Math.min(...b.map(position));
+  const ordered = [
+    ...[...solo.map((i) => [i]), ...leftover.map((i) => [i]), ...pairs].sort(byPosition),
+    ...[...closing.leftover.map((i) => [i]), ...closing.pairs].sort(byPosition),
+  ];
   ordered
     .filter((block) => block.length === 2)
     .forEach((pair, i) => pair.forEach((item) => (item.group = String.fromCharCode(65 + i))));

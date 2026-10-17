@@ -104,6 +104,11 @@ export function formatDose(item, exercise, reps, showRest = true) {
   return showRest ? `${dose} · ${t("dose.rest", { time: formatRest(item.rest) })}` : dose;
 }
 
+// Título del cierre del día (core y tobillo): ejercicios cortos que también se pueden hacer en casa.
+export const closingHeader = () => `
+  <h2 class="section-title closing-title">${t("closing.title")}</h2>
+  <p class="muted small-note closing-note">${t("closing.note")}</p>`;
+
 // ---------- Panel inferior (bottom sheet) ----------
 
 export function openSheet({ title, body, onMount }) {

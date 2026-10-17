@@ -130,7 +130,7 @@ export const EXERCISES = [
   {
     id: "extension-cuadriceps", name: "Extensión de cuádriceps", equipment: "maquina", pattern: "knee_ext",
     primary: ["cuadriceps"], secondary: [],
-    description: "Extender las rodillas sentado en la máquina, aislando el cuádriceps.",
+    description: "Extender las rodillas desde el asiento de la máquina, aislando el cuádriceps.",
     steps: ["Ajusta el respaldo para que las rodillas coincidan con el eje de la máquina.", "Extiende las piernas hasta arriba.", "Baja lento."],
     tip: "Haz una pausa de un segundo arriba apretando el cuádriceps.",
   },
@@ -146,7 +146,7 @@ export const EXERCISES = [
   {
     id: "curl-femoral-sentado", name: "Curl femoral sentado", equipment: "maquina", pattern: "knee_flex",
     primary: ["isquios"], secondary: ["pantorrillas"],
-    description: "Flexión de rodillas sentado en la máquina.",
+    description: "Flexión de rodillas desde el asiento de la máquina.",
     steps: ["Siéntate con el rodillo sobre los tobillos y la almohadilla sobre los muslos.", "Flexiona las rodillas llevando el rodillo abajo y atrás.", "Vuelve lento."],
     tip: "Inclinar el torso un poco adelante aumenta el estiramiento.",
   },
@@ -448,6 +448,13 @@ export const EXERCISES = [
     steps: ["Bajo una barra fija, cuerpo recto y talones en el suelo.", "Tira del pecho hacia la barra.", "Baja lento."],
     tip: "Cuanto más vertical estés, más fácil.",
   },
+  {
+    id: "remo-suelo", name: "Remo en el suelo", equipment: "peso_corporal", pattern: "rear_delt",
+    primary: ["espalda_media"], secondary: ["hombro_posterior", "trapecio"],
+    description: "Boca arriba, empujar los codos contra el suelo para despegar un poco el torso. Trabaja la espalda alta sin equipo.",
+    steps: ["Boca arriba, rodillas dobladas y codos pegados al cuerpo, doblados a 90°.", "Empuja los codos contra el suelo y junta los omóplatos para despegar un poco el pecho.", "Sostén un segundo y baja despacio."],
+    tip: "Muy bueno para la postura: piensa en llevar los omóplatos hacia atrás y abajo.",
+  },
 
   // ---------- Jalón / dominada ----------
   {
@@ -571,7 +578,7 @@ export const EXERCISES = [
   {
     id: "plancha", name: "Plancha", equipment: "peso_corporal", pattern: "core", timed: true,
     primary: ["abdomen"], secondary: ["oblicuos", "hombro_frontal"],
-    description: "Sostener el cuerpo recto apoyada en antebrazos y puntas de los pies.",
+    description: "Sostener el cuerpo recto sobre antebrazos y puntas de los pies.",
     steps: ["Antebrazos bajo los hombros, cuerpo en línea recta.", "Aprieta abdomen y glúteos.", "Mantén la posición el tiempo indicado."],
     tip: "Mejor 30 segundos perfectos que 1 minuto con la cadera caída.",
   },
@@ -609,6 +616,195 @@ export const EXERCISES = [
     description: "Boca arriba, enrollar el torso despegando los hombros del suelo.",
     steps: ["Boca arriba, rodillas flexionadas.", "Despega los hombros enrollando el torso.", "Baja lento."],
     tip: "No tires del cuello con las manos.",
+  },
+
+  {
+    id: "plancha-lateral", name: "Plancha lateral", equipment: "peso_corporal", pattern: "core", timed: true,
+    primary: ["oblicuos"], secondary: ["abdomen", "gluteo_medio"],
+    description: "De lado, sostener el cuerpo recto sobre un antebrazo y el borde del pie.",
+    steps: ["Codo bajo el hombro, pies uno sobre otro (o rodillas apoyadas para hacerla más fácil).", "Sube la cadera hasta que el cuerpo quede en línea recta.", "Mantén el tiempo indicado y cambia de lado."],
+    tip: "La cadera no baja ni se va hacia atrás. Ayuda mucho a la postura.",
+  },
+  {
+    id: "dead-bug", name: "Dead bug", equipment: "peso_corporal", pattern: "core",
+    primary: ["abdomen"], secondary: ["oblicuos"],
+    description: "Boca arriba, estirar brazo y pierna contrarios sin que la espalda baja se despegue del suelo.",
+    steps: ["Boca arriba, brazos al techo y rodillas a 90° sobre la cadera.", "Estira un brazo hacia atrás y la pierna contraria al frente, despacio.", "Vuelve y cambia de lado. Cada lado cuenta como una repetición."],
+    tip: "La espalda baja se queda pegada al suelo todo el tiempo: ese es el ejercicio.",
+  },
+  {
+    id: "bird-dog", name: "Bird dog", equipment: "peso_corporal", pattern: "core",
+    primary: ["lumbares", "abdomen"], secondary: ["gluteos", "hombro_posterior"],
+    description: "En cuatro apoyos, estirar brazo y pierna contrarios manteniendo la espalda quieta.",
+    steps: ["Manos bajo los hombros y rodillas bajo la cadera.", "Estira un brazo al frente y la pierna contraria atrás.", "Sostén 2 segundos, vuelve y cambia de lado."],
+    tip: "Imagina un vaso de agua sobre tu espalda baja: que no se caiga.",
+  },
+
+  {
+    id: "superman", name: "Superman", equipment: "peso_corporal", pattern: "core",
+    primary: ["lumbares"], secondary: ["gluteos", "espalda_media", "hombro_posterior"],
+    description: "Boca abajo, despegar a la vez brazos y piernas del suelo.",
+    steps: ["Boca abajo, brazos estirados al frente.", "Despega brazos, pecho y piernas unos centímetros, mirando al suelo.", "Sostén 2 segundos y baja despacio."],
+    tip: "Poca altura y mucho control. Ayuda a la postura porque fortalece toda la espalda.",
+  },
+  {
+    id: "plancha-alterna", name: "Plancha alta con brazo y pierna alternos", equipment: "peso_corporal", pattern: "core",
+    primary: ["abdomen", "oblicuos"], secondary: ["hombro_frontal", "gluteos", "lumbares"],
+    description: "En plancha sobre las manos, estirar un brazo y la pierna contraria sin mover la cadera.",
+    steps: ["Plancha sobre las manos, cuerpo recto, glúteos y abdomen apretados.", "Sube un brazo y la pierna contraria hasta que queden en línea con el cuerpo.", "Baja con control y cambia de lado. Cada lado cuenta como una repetición."],
+    tip: "Es un bird dog en plancha: si la cadera se mueve, abre un poco más los pies.",
+  },
+  {
+    id: "elevacion-piernas-suelo", name: "Elevación de piernas acostado", equipment: "peso_corporal", pattern: "core",
+    primary: ["abdomen"], secondary: [],
+    description: "Boca arriba, subir y bajar las piernas sin que la espalda baja se despegue del suelo.",
+    steps: ["Boca arriba, manos debajo de la cadera o a los lados.", "Sube las piernas hasta 90°.", "Bájalas despacio hasta donde la espalda baja siga pegada al suelo."],
+    tip: "Con las rodillas dobladas es más fácil. Si la espalda se arquea, no bajes tanto.",
+  },
+  {
+    id: "crunch-inverso", name: "Crunch inverso", equipment: "peso_corporal", pattern: "core",
+    primary: ["abdomen"], secondary: ["oblicuos"],
+    description: "Boca arriba, llevar las rodillas al pecho despegando un poco la cadera del suelo.",
+    steps: ["Boca arriba, rodillas dobladas a 90° en el aire.", "Lleva las rodillas al pecho despegando la cadera del suelo.", "Baja despacio sin dejar caer las piernas."],
+    tip: "El movimiento es corto: sube la cadera con el abdomen, no con impulso.",
+  },
+  {
+    id: "chinnies", name: "Chinnies", equipment: "peso_corporal", pattern: "core",
+    primary: ["oblicuos", "abdomen"], secondary: [],
+    description: "Boca arriba, crunch llevando la rodilla doblada hacia el codo contrario y alternando.",
+    steps: ["Boca arriba, manos suaves detrás de las orejas, una pierna doblada y la otra estirada.", "Haz un crunch y acerca la rodilla doblada al codo contrario.", "Cambia de lado y sigue alternando."],
+    tip: "No jales la cabeza con las manos: el que sube es el abdomen.",
+  },
+  {
+    id: "crunch-bicicleta", name: "Crunch bicicleta", equipment: "peso_corporal", pattern: "core",
+    primary: ["oblicuos", "abdomen"], secondary: [],
+    description: "Boca arriba, pedalear en el aire llevando cada codo hacia la rodilla contraria.",
+    steps: ["Boca arriba, manos detrás de las orejas, piernas en el aire.", "Estira una pierna mientras llevas el codo contrario hacia la otra rodilla.", "Cambia de lado de forma continua y controlada."],
+    tip: "Despacio rinde más que rápido. Cada lado cuenta como una repetición.",
+  },
+  {
+    id: "toques-talon", name: "Toques de talón", equipment: "peso_corporal", pattern: "core",
+    primary: ["oblicuos"], secondary: ["abdomen"],
+    description: "Boca arriba con los hombros despegados, inclinarse de lado para tocar un talón y luego el otro.",
+    steps: ["Boca arriba, rodillas dobladas y pies en el suelo.", "Despega los hombros y estira los brazos hacia los pies.", "Inclínate a un lado para tocar el talón y luego al otro."],
+    tip: "Los hombros no bajan al suelo entre repeticiones.",
+  },
+
+  // Más core en el mat (también para Core DIY)
+  {
+    id: "hollow-hold", name: "Hollow hold", equipment: "peso_corporal", pattern: "core", timed: true,
+    primary: ["abdomen"], secondary: ["oblicuos"],
+    description: "Boca arriba, despegar hombros y piernas del suelo y sostener el cuerpo en forma de banana.",
+    steps: ["Boca arriba, espalda baja pegada al suelo.", "Despega hombros y piernas, brazos estirados hacia atrás o hacia los pies.", "Sostén el tiempo indicado sin que la espalda baja se despegue."],
+    tip: "Con las rodillas dobladas es más fácil. Lo importante es la espalda pegada al suelo.",
+  },
+  {
+    id: "plancha-toques-hombro", name: "Plancha con toques de hombro", equipment: "peso_corporal", pattern: "core",
+    primary: ["abdomen", "oblicuos"], secondary: ["hombro_frontal"],
+    description: "En plancha sobre las manos, tocar el hombro contrario con una mano y luego con la otra.",
+    steps: ["Plancha sobre las manos, pies un poco separados.", "Toca el hombro contrario con una mano sin mover la cadera.", "Regresa la mano y cambia de lado."],
+    tip: "Si la cadera se balancea, separa más los pies o hazlo con las rodillas apoyadas.",
+  },
+  {
+    id: "bear-hold", name: "Bear hold", equipment: "peso_corporal", pattern: "core", timed: true,
+    primary: ["abdomen"], secondary: ["hombro_frontal", "cuadriceps"],
+    description: "En cuatro apoyos, despegar las rodillas un par de centímetros del suelo y sostener.",
+    steps: ["Manos bajo los hombros y rodillas bajo la cadera.", "Despega las rodillas 2–3 cm del suelo, espalda plana.", "Sostén el tiempo indicado respirando normal."],
+    tip: "La espalda queda plana como una mesa. Exige poco al tobillo.",
+  },
+  {
+    id: "plancha-lateral-cadera", name: "Plancha lateral con bajada de cadera", equipment: "peso_corporal", pattern: "core",
+    primary: ["oblicuos"], secondary: ["gluteo_medio", "abdomen"],
+    description: "En plancha lateral, bajar un poco la cadera y volver a subirla.",
+    steps: ["Plancha lateral sobre el antebrazo (rodillas apoyadas para hacerla más fácil).", "Baja la cadera unos centímetros.", "Súbela de nuevo hasta la línea recta. Haz todas y cambia de lado."],
+    tip: "Movimiento corto y controlado; el hombro queda sobre el codo.",
+  },
+  {
+    id: "russian-twist", name: "Russian twist", equipment: "peso_corporal", pattern: "core",
+    primary: ["oblicuos"], secondary: ["abdomen"],
+    description: "Sentándote con el torso inclinado hacia atrás, girar de un lado a otro.",
+    steps: ["Siéntate con las rodillas dobladas y el torso inclinado hacia atrás, espalda recta.", "Gira el torso llevando las manos a un lado.", "Gira al otro lado. Cada lado cuenta como una repetición."],
+    tip: "Gira desde el torso, no solo los brazos. Con los pies en el suelo es más fácil.",
+  },
+  {
+    id: "flutter-kicks", name: "Flutter kicks", equipment: "peso_corporal", pattern: "core", timed: true,
+    primary: ["abdomen"], secondary: [],
+    description: "Boca arriba, piernas estiradas en el aire haciendo patadas cortas alternas.",
+    steps: ["Boca arriba, manos bajo la cadera.", "Despega las piernas del suelo, estiradas.", "Sube y baja una y otra en patadas cortas, sin parar."],
+    tip: "Si la espalda baja se arquea, sube más las piernas.",
+  },
+  {
+    id: "tijeras", name: "Tijeras", equipment: "peso_corporal", pattern: "core", timed: true,
+    primary: ["abdomen"], secondary: ["aductores"],
+    description: "Boca arriba, cruzar las piernas estiradas en el aire una sobre otra, alternando.",
+    steps: ["Boca arriba, manos bajo la cadera.", "Despega las piernas del suelo, estiradas.", "Ábrelas y crúzalas alternando cuál queda arriba."],
+    tip: "La espalda baja se queda pegada al suelo.",
+  },
+  {
+    id: "toe-touches", name: "Toe touches", equipment: "peso_corporal", pattern: "core",
+    primary: ["abdomen"], secondary: [],
+    description: "Boca arriba con las piernas arriba, subir el torso para tocar las puntas de los pies.",
+    steps: ["Boca arriba, piernas estiradas hacia el techo.", "Sube el torso estirando las manos hacia las puntas de los pies.", "Baja despacio."],
+    tip: "Si no llegas a los pies, toca las espinillas. Las piernas no se mueven.",
+  },
+  {
+    id: "v-ups", name: "V-ups", equipment: "peso_corporal", pattern: "core", advanced: true,
+    primary: ["abdomen"], secondary: ["oblicuos"],
+    description: "Boca arriba, subir a la vez torso y piernas estiradas hasta formar una V.",
+    steps: ["Boca arriba, brazos estirados hacia atrás.", "Sube a la vez torso y piernas, tocando las piernas con las manos.", "Baja con control."],
+    tip: "Versión más fácil: con las rodillas dobladas (tuck-ups).",
+  },
+  {
+    id: "swimmers", name: "Swimmers", equipment: "peso_corporal", pattern: "core", timed: true,
+    primary: ["lumbares"], secondary: ["gluteos", "hombro_posterior", "espalda_media"],
+    description: "Boca abajo, alternar brazo y pierna contrarios como si nadaras.",
+    steps: ["Boca abajo, brazos estirados al frente.", "Despega un poco brazos, pecho y piernas.", "Alterna subiendo brazo y pierna contrarios, sin bajar al suelo."],
+    tip: "Movimiento corto y rápido, cuello largo y mirada al suelo.",
+  },
+  {
+    id: "ytw-boca-abajo", name: "Y-T-W boca abajo", equipment: "peso_corporal", pattern: "rear_delt",
+    primary: ["espalda_media", "hombro_posterior"], secondary: ["trapecio", "lumbares"],
+    description: "Boca abajo, despegar los brazos formando las letras Y, T y W para trabajar la espalda alta.",
+    steps: ["Boca abajo, frente cerca del suelo.", "Sube los brazos en Y, bájalos; luego en T y luego en W (codos doblados).", "Cada Y-T-W cuenta como una repetición."],
+    tip: "Junta los omóplatos en cada letra. Muy bueno para los hombros redondeados.",
+  },
+  {
+    id: "puente-una-pierna", name: "Puente de glúteo a una pierna", equipment: "peso_corporal", pattern: "hip_thrust",
+    primary: ["gluteos"], secondary: ["isquios", "gluteo_medio"],
+    description: "Puente de glúteo apoyando solo un pie y con la otra pierna en el aire.",
+    steps: ["Boca arriba, un pie apoyado y la otra pierna estirada o doblada en el aire.", "Sube la cadera empujando con el talón de apoyo.", "Baja despacio. Haz todas y cambia de pierna."],
+    tip: "La cadera sube recta, sin inclinarse hacia un lado.",
+  },
+  {
+    id: "mountain-climbers", name: "Mountain climbers", equipment: "peso_corporal", pattern: "core", timed: true,
+    primary: ["abdomen"], secondary: ["hombro_frontal", "cuadriceps"],
+    description: "En plancha sobre las manos, llevar las rodillas al pecho alternando.",
+    steps: ["Plancha sobre las manos.", "Lleva una rodilla al pecho y regrésala.", "Alterna las piernas a un ritmo que puedas controlar."],
+    tip: "Hazlo despacio si te molesta el tobillo: cuenta igual.",
+  },
+
+  // ---------- Tobillos ----------
+  // Para fortalecer el tobillo (por ejemplo, después de un esguince). Si duele, para.
+  {
+    id: "talones-una-pierna", name: "Elevación de talones a una pierna", equipment: "peso_corporal", pattern: "ankle",
+    primary: ["pantorrillas"], secondary: ["tibial"],
+    description: "De pie sobre una pierna, subir y bajar el talón despacio.",
+    steps: ["De pie sobre una pierna, apoyándote en una pared solo para el equilibrio.", "Sube a la punta del pie lo más alto que puedas.", "Baja en 3 segundos. Haz todas las repeticiones y cambia de pierna."],
+    tip: "Empieza en el suelo plano; más adelante, en el borde de un escalón. Si sientes dolor en el tobillo (no solo esfuerzo), para.",
+  },
+  {
+    id: "elevacion-puntas", name: "Elevación de puntas", equipment: "peso_corporal", pattern: "ankle",
+    primary: ["tibial"], secondary: [],
+    description: "Con la espalda en la pared, subir las puntas de los pies dejando los talones en el suelo.",
+    steps: ["Espalda contra la pared, talones a unos 30 cm de ella.", "Sube las puntas de los pies hacia las espinillas.", "Baja despacio sin tocar del todo el suelo y repite."],
+    tip: "Fortalece el frente de la pierna, que suele quedar débil después de un esguince. Si duele, para.",
+  },
+  {
+    id: "equilibrio-una-pierna", name: "Equilibrio en una pierna", equipment: "peso_corporal", pattern: "ankle", timed: true,
+    primary: ["pantorrillas"], secondary: ["tibial", "gluteo_medio"],
+    description: "Sostenerse sobre una pierna, con la rodilla ligeramente flexionada.",
+    steps: ["De pie junto a una pared o un apoyo, por si lo necesitas.", "Levanta un pie y mantén el equilibrio sobre la otra pierna.", "Cuando sea fácil, prueba con los ojos cerrados o sobre un cojín. Cambia de pierna."],
+    tip: "Es lo que más ayuda a que el tobillo no se vuelva a doblar. Si duele o se siente inestable, apóyate.",
   },
 
   // ---------- Banda elástica ----------

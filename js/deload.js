@@ -74,7 +74,7 @@ export function deloadAdvice(workouts, plan, state, periods = []) {
   if (state.snoozeUntil && new Date(state.snoozeUntil) > new Date()) return null;
 
   const since = new Date(Math.max(new Date(plan.createdAt || 0), new Date(state.lastEndedAt || 0)));
-  const regular = workouts.filter((w) => !w.deload && new Date(w.finishedAt) > since);
+  const regular = workouts.filter((w) => !w.deload && !w.extra && new Date(w.finishedAt) > since);
 
   // 1. Estancamiento: sin mejora en 3 sesiones seguidas, en 3 ejercicios o más.
   //    Las sesiones de días de período no cuentan (un día más ligero no es estancarse).

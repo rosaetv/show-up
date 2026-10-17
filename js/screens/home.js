@@ -69,7 +69,7 @@ export async function renderHome(view) {
         return `
         <h2 class="section-title">${t("home.inProgress")}</h2>
         <section class="card next-card">
-          <p class="eyebrow">${t("common.dayN", { n: active.dayIndex + 1 })}</p>
+          <p class="eyebrow">${active.extra ? t("core.extraTag") : t("common.dayN", { n: active.dayIndex + 1 })}</p>
           <h3>${esc(workoutDayLabel(active))}</h3>
           <p class="muted">${t("home.setsDone", { done: completed, total })}</p>
           <a class="btn btn-primary" href="#/entrenando">${t("home.continue")}</a>
@@ -120,6 +120,14 @@ export async function renderHome(view) {
         </a>`
         )
         .join("")}
+      <a class="list-row" href="#/core">
+        <span class="day-number day-extra" aria-hidden="true">+</span>
+        <span class="list-row-text">
+          <strong>${t("core.title")}</strong>
+          <small>${t("core.rowHint")}</small>
+        </span>
+        ${icons.chevron}
+      </a>
     </div>
 
     <a class="btn btn-secondary btn-outline btn-spaced" href="#/plan/nuevo">${t("home.adjustPlan")}</a>

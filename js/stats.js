@@ -8,6 +8,8 @@ import { startOfWeek } from "./store.js";
  * Devuelve { weeks: [{ start, count, goal, done, current }], current, best }
  */
 export function weeklySummary(workouts, currentGoal) {
+  // Los extras (Core DIY) se ven en el historial pero no cuentan para la meta.
+  workouts = workouts.filter((w) => !w.extra);
   const thisWeek = startOfWeek().getTime();
   if (!workouts.length) {
     return { weeks: [{ start: new Date(thisWeek), count: 0, goal: currentGoal, done: false, current: true }], current: 0, best: 0 };

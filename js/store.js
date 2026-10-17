@@ -118,6 +118,7 @@ export const deleteWorkout = (id) => db.delete("workouts", id);
 export async function getExerciseHistory(exerciseId) {
   const sessions = [];
   for (const workout of await getWorkouts()) {
+    if (workout.extra) continue; // Core DIY va en segundos: no entra en la progresión ni en los récords
     const entry = workout.exercises.find((e) => e.exerciseId === exerciseId);
     if (entry?.sets.length) sessions.push({ date: workout.finishedAt, workoutId: workout.id, ...entry });
   }
@@ -132,7 +133,7 @@ export async function getLastPerformance(exerciseId) {
   const periods = (await getProfile()).trackPeriod ? await getPeriods() : [];
   let periodFallback = null;
   for (const workout of await getWorkouts()) {
-    if (workout.deload) continue;
+    if (workout.deload || workout.extra) continue;
     const entry = workout.exercises.find((e) => e.exerciseId === exerciseId);
     if (!entry?.sets.length) continue;
     const found = { date: workout.finishedAt, sets: entry.sets, effort: entry.effort };

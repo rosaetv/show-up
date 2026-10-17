@@ -1,7 +1,7 @@
 // Genera el plan semanal y calcula alternativas de ejercicios.
 
 import { DAY_TEMPLATES, SPLITS, EXERCISES_PER_SESSION, PRESCRIPTIONS, MUSCLE_GROUPS } from "./data/catalog.js";
-import { CARE_ZONES, FOCUS_PATTERNS } from "./data/care.js";
+import { CARE_ZONES, FOCUS_PATTERNS, SAFE_SWAPS } from "./data/care.js";
 import { WEEKLY_COVERAGE, REGIONS } from "./data/coverage.js";
 import { isCompound } from "./store.js";
 import { t } from "./i18n.js";
@@ -44,8 +44,13 @@ export function generatePlan(options, exercises) {
     for (let pass = 0; pass < 2; pass++) {
       for (const patterns of slots) {
         if (items.length >= count) break;
-        const exercise = pickExercise(patterns, exercises, options, usedInDay, usedInPlan, items.length);
+        let exercise = pickExercise(patterns, exercises, options, usedInDay, usedInPlan, items.length);
         if (!exercise) continue;
+        // Si carga una zona a cuidar y no había otra opción del mismo tipo, se busca un equivalente.
+        if (stressesCare(exercise, options.care) && SAFE_SWAPS[exercise.pattern]) {
+          const safe = (e) => !stressesCare(e, options.care);
+          exercise = pickExercise(SAFE_SWAPS[exercise.pattern], exercises, options, usedInDay, usedInPlan, items.length, safe) || exercise;
+        }
         usedInDay.add(exercise.id);
         usedInPlan.add(exercise.id);
         items.push(makeItem(exercise, goal, items.length, options));
@@ -55,6 +60,7 @@ export function generatePlan(options, exercises) {
   });
 
   ensureWeeklyCoverage(days, exercises, options, usedInPlan);
+  addFinishers(days, exercises, options, usedInPlan);
 
   return {
     id: Date.now().toString(36),
@@ -142,6 +148,32 @@ function ensureWeeklyCoverage(days, exercises, options, usedInPlan) {
       );
       if (!placed) break; // No hay espacio (sesiones muy cortas): se deja como está.
     }
+  }
+}
+
+// Core para la postura que se puede hacer en casa, sin equipo.
+const HOME_CORE = new Set(["plancha", "plancha-lateral", "dead-bug", "bird-dog", "superman", "plancha-alterna"]);
+
+/**
+ * Cierre de cada día: ejercicios cortos (2 series) al final, que también se
+ * pueden hacer en casa.
+ *   - Core para la postura, si el día no trae ya un ejercicio de core.
+ *   - Tobillo, si marcaste Tobillos en las zonas a cuidar (va rotando entre días).
+ */
+function addFinishers(days, exercises, options, usedInPlan) {
+  const add = (day, patterns, preferred) => {
+    const usedInDay = new Set(day.items.map((i) => i.exerciseId));
+    const exercise =
+      pickExercise(patterns, exercises, options, usedInDay, usedInPlan, 9, preferred) ||
+      pickExercise(patterns, exercises, options, usedInDay, usedInPlan, 9);
+    if (!exercise) return;
+    usedInPlan.add(exercise.id);
+    day.items.push({ ...makeItem(exercise, options.goal, 9, options), sets: 2, finisher: true });
+  };
+  const byId = (id) => exercises.find((e) => e.id === id);
+  for (const day of days) {
+    if (!day.items.some((i) => byId(i.exerciseId)?.pattern === "core")) add(day, ["core"], (e) => HOME_CORE.has(e.id));
+    if (options.care?.includes("tobillos")) add(day, ["ankle"]);
   }
 }
 

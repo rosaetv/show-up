@@ -2392,3 +2392,72 @@ body.has-resume-bar .bottom-bar.above-tabs {
   user-select: text;
   -webkit-user-select: text;
 }
+
+/* ---------- Cierre del día (core y tobillo) ---------- */
+
+.closing-title {
+  margin-bottom: var(--space-1);
+}
+
+.closing-note {
+  margin: 0 0 var(--space-3);
+}
+
+/* ---------- Core DIY ---------- */
+
+.list-row .day-number.day-extra {
+  background: transparent;
+  border: 1.5px dashed var(--color-border-strong);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.core-row {
+  gap: 0;
+  padding: 0 var(--space-2) 0 0;
+}
+
+.core-row .check-row {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-3) var(--space-2) var(--space-3) var(--card-padding);
+  border: none;
+}
+
+.core-row strong {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.mark-fav svg,
+.mark-dislike svg {
+  width: 14px;
+  height: 14px;
+}
+
+.mark-fav {
+  color: var(--color-favorite);
+}
+
+.mark-dislike {
+  color: var(--color-danger);
+}
+
+.core-note {
+  margin: 0 0 var(--space-2);
+}
+
+.howto ol {
+  padding-left: var(--space-5);
+}
+
+.howto-marks {
+  margin-top: var(--space-3);
+}
+
+.howto-marks svg {
+  width: 16px;
+  height: 16px;
+}

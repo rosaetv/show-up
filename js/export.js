@@ -56,9 +56,9 @@ export async function routineText({ allTime = false, body = false } = {}) {
     return `${formatNumber(fromKg(kg, unit))} ${unit}`;
   };
   // Series como "12×10, 11×10" (reps × peso); sin peso, solo las repeticiones.
-  const setsText = (sets, id) => {
+  const setsText = (sets, id, circuit = false) => {
     const unit = unitFor(units, id);
-    const suffix = byId(id)?.timed ? " s" : "";
+    const suffix = byId(id)?.timed || circuit ? " s" : "";
     const text = sets.map((s) => (s.weight > 0 ? `${s.reps}${suffix}×${formatNumber(fromKg(s.weight, unit))}` : `${s.reps}${suffix}`)).join(", ");
     return sets.some((s) => s.weight > 0) && unit !== "kg" ? `${text} (${unit})` : text;
   };
@@ -80,6 +80,7 @@ export async function routineText({ allTime = false, body = false } = {}) {
       const last = await getLastPerformance(item.exerciseId);
       const current = last ? weightText(workingWeight(last.sets), item.exerciseId) : t("export.notYet");
       const note = [
+        item.finisher && t("closing.title"),
         item.group && t("superset.label", { letter: item.group }),
         last?.effort && `${t("export.effort")}: ${t(`effort.${last.effort}`)}`,
         notes[item.exerciseId],
@@ -103,7 +104,7 @@ export async function routineText({ allTime = false, body = false } = {}) {
         isoDate(w.finishedAt),
         dayLabel({ template: w.dayTemplate, suffix: w.daySuffix, name: w.dayName }),
         nameOf(e.exerciseId, e.name),
-        setsText(e.sets, e.exerciseId),
+        setsText(e.sets, e.exerciseId, e.circuit),
       ])
     );
     lines.push("", ...table([t("export.col.date"), t("export.col.day"), t("export.col.exercise"), t("export.col.sets")], rows));
@@ -114,6 +115,7 @@ export async function routineText({ allTime = false, body = false } = {}) {
   lines.push(`## ${allTime ? t("export.progressAll") : t("export.progress")}`);
   const byExercise = new Map();
   for (const w of recent) {
+    if (w.extra) continue;
     for (const e of w.exercises) {
       if (!e.sets.length) continue;
       if (!byExercise.has(e.exerciseId)) byExercise.set(e.exerciseId, []);
